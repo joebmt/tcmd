@@ -13,8 +13,8 @@ To write and desgin tests for bash scripts, you should include unit AND function
 See the files in the framework for detailed examples.  The **tests/test_tcmd.sh** program demonstrates a lot of the different ways to write functional tests quickly.  The program can run any command, not just bash/shell commands.
 
 The simple case to write a functional test is like this:
+
 ```
-tcmd date 2018
 joe@joemac:[bin] tcmd date 2018
 Pass: cmd [date]; regex [2018]
 joe@joemac:[bin] tcmd -v date 2018
