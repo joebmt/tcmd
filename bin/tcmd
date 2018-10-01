@@ -31,7 +31,7 @@
 #   -r, --return_code <text>  The return status compared to regex
 #   -v, --verbose             Turn verbose output on
 #   -p, --pydoc               Generate pydoc
-#   -t, --time                Report execution time in seconds
+#   -t, --timer               Report execution time in seconds
 #   -h, --help                This usage message
 #
 # Author:
@@ -54,6 +54,8 @@ import os
 import subprocess
 import re
 import textwrap
+from time import time as timetime
+from datetime import *
 
 # ---
 # Define the DBG flag (can turn on via -d option or export DBG=true
@@ -156,13 +158,13 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--return_code', '-r', is_flag=False,default='0',   help='The return status compared to regex', metavar='<text>')
 @click.option('--verbose',     '-v', is_flag=True, default=False, help='Turn verbose output on', metavar='<text>')
 @click.option('--pydoc',       '-p', is_flag=True, default=False, help='Generate pydoc')
-@click.option('--time',        '-t', is_flag=True, default=False, help='Report Execution time in seconds')
+@click.option('--timer',       '-t', is_flag=True, default=False, help='Report Execution time in seconds')
 @click.option('--backslash',   '-b', is_flag=True, default=False, help='Backslash all regex meta chars')
 @click.help_option('--help',   '-h', help="This usage message")
 @click.argument('cmd')
 @click.argument('regex')
 
-def testcmd(dbg, verbose, pydoc, cmd, regex, error, return_code, negate, stdin, comment, time, backslash):
+def testcmd(dbg, verbose, pydoc, cmd, regex, error, return_code, negate, stdin, comment, timer, backslash):
     """\b
 tcmd - test a commands output against a regular expression
 
@@ -222,6 +224,13 @@ Warning:
 """
     global DBG
 
+    if dbg: DBG=1
+    if DBG: pindent("DBG: len(sys.argv): %s" % len(sys.argv))
+
+    if timer:
+        start_time = datetime.now()
+        if DBG: pindent("DBG: start_time: %s" % start_time)
+
     # ---
     # Escape the regex metachars so people do not have backslash them on command line
     if backslash:
@@ -247,9 +256,6 @@ Warning:
         # Negate the regex for stdout if negate given
         # syntax: (?! regex) negates regex
         # regex = "(?!"+regex+")"
-
-    if dbg: DBG=1
-    if DBG: pindent("DBG: len(sys.argv): %s" % len(sys.argv))
 
     # ---
     # Make sure we have cmd and regex from cmd line args
@@ -309,6 +315,11 @@ Warning:
         cmd_stdout = re.sub( '^',' '*6, cmd_stdout , flags=re.MULTILINE )
         cmd_stdout = cmd_stdout.lstrip()
 
+    if timer:
+        now = datetime.now()
+        elapsed_time = now - start_time
+        pindent("Elapsed_time: %s" % elapsed_time)
+
     if stdout_searchObj and stderr_searchObj and return_code_searchObj:
         if comment:
             click.echo("Pass: cmd [%s]; regex [%s] # %s" % (cmd, regex, comment))
@@ -319,6 +330,9 @@ Warning:
             click.echo("      cmd_stderr: [%s]" % cmd_stderr)
             click.echo("           regex: [%s]" % regex)
             click.echo("      cmd_stdout: [%s]" % cmd_stdout)
+            if timer:
+                pindent("---")
+                pindent("Elapsed Time: %s" % elapsed_time)
         exit(0)
     else:
         if comment:
@@ -331,6 +345,9 @@ Warning:
             click.echo("      cmd_stderr: [%s]" % cmd_stderr)
             click.echo("           regex: [%s]" % regex)
             click.echo("      cmd_stdout: [%s]" % cmd_stdout)
+            if timer:
+                pindent("---")
+                pindent("Elapsed Time: %s" % elapsed_time)
         exit(1)
 
 if __name__ == '__main__':
