@@ -26,7 +26,7 @@ Pass: cmd [date]; regex [2018]
       cmd_stdout: [Mon Oct  1 03:11:40 PDT 2018]
 ```
 
-View and run the tests/test_prg.sh program to see another example:
+View and run the **tests/test_prg.sh** program to see another example:
 
 ```
 joe@joemac:[tests] test_prg.sh
@@ -74,7 +74,7 @@ pip install -r inc/requirements.txt
 
 ## Running the tests
 
-Run the functional tests for tcmd and the prg.sh template:
+Run the functional tests for **tcmd** and the **prg.sh** template:
 
 ```
 cd tests
@@ -82,15 +82,16 @@ test_tcmd.sh
 test_prg.sh
 ```
 
-To run the unit tests in prg.sh template:
+To run the unit tests in **prg.sh** template:
 
 ```
 cd inc
 prg_functions.sh
 ```
+
 ### Functional Test Examples
 
-There are two example tests to use as templates for tcmd functional tests:
+There are two example tests to use as templates for **tcmd** functional tests:
 
 ```
 ./tests/test_tcmd.sh
@@ -250,7 +251,7 @@ The framework and description looks like this:
 
 ## tcmd Usage Message
 
-The functional test tool tcmd is pretty powerful and simple to use.  You can specify regular expressions to match against stdout, stderr, and the command return status.  It defaults to the empty string for stderr and '0' for the return status of the command.
+The functional test tool tcmd is pretty powerful and simple to use.  You can specify regular expressions to match against **stdout, stderr, and the command return status**.  It defaults to the empty string for **stderr** and **'0'** for the return status of the command.
 
 ```
 joe@joemac:[bin] tcmd -h
