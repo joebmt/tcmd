@@ -17,6 +17,7 @@ The simple case to write a functional test is like this:
 ```
 joe@joemac:[bin] tcmd date 2018
 Pass: cmd [date]; regex [2018]
+
 joe@joemac:[bin] tcmd -v date 2018
 Pass: cmd [date]; regex [2018]
       cmd_return: [0]
