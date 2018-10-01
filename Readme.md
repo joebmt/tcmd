@@ -1,6 +1,6 @@
 # tcmd - Functional Test Command Program and Framework
 
-Simple Shell unit and functional test command framework and examples.
+Simple Bash/Shell Unit and Functional Test Command Framework and Examples.
 
 ## Overview
 
