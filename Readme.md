@@ -268,6 +268,8 @@ The framework and description looks like this:
 
 The functional test tool **tcmd** is pretty powerful and simple to use.  You can specify regular expressions to match against **stdout, stderr, and the command return status**.  It defaults to the empty string for **stderr** and **'0'** for the return status of the command.  
 
+Usage:
+
 ```
 joe@joemac:[bin] tcmd -h
 Usage: tcmd [options] CMD REGEX
@@ -321,7 +323,7 @@ Options:
 
 ## b (backup program) Usage Message
 
-I included a simple backup program I use when I am developing bash/shell scripts.  I simple run "b" in the root directory when I am developing if I am not using my Intellij IDE so that I can back out changes or have a copy in case I accidently remove a file or files.  I know the name "b" is not a best practice but since I type it so frequently I called it "b" instead of backup.sh so I could save typing keystrokes.
+I included a simple backup program I use when I am developing bash/shell scripts.  I simply run **b** in the root directory when I am developing if I am not using my Intellij IDE so that I can back out changes or have a copy in case I accidently remove a file or files.  I know the name **b** is not a best practice but since I type it so frequently I called it **b** instead of **backup.sh** so I could save typing keystrokes.
 
 Usage:
 
