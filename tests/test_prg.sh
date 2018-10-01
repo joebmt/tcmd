@@ -1,5 +1,5 @@
 # ---
-# test_tcmd.sh - shell program which runs tests to verify ../bin/tcmd functions correctly
+# test_prg.sh - shell program which runs tests to verify ../prg.sh functions correctly
 # ---
 PRG="prg.sh"
 TPRG=$(basename $0)
@@ -20,10 +20,30 @@ print_header "$TPRG"
 # Execute functional tests
 (
   cd ..
-  # Ex: tcmd prg.sh "add 2 3: 5"
-  $TCMD $PRG "add 2 3: 5"
-  $TCMD $PRG "multiply 2 3: 6"
-  $TCMD -v $PRG "something_without_a_return"
+  # ---
+  # Test the usage message -h option (Note: Have to backslash the square brackets since regex metachar
+  $TCMD "$PRG -h" "Usage: prg.sh \[-h\] -add <int1> <int2>"
+
+  # ---
+  # Test the usage message -h option (Note: Have to use . for any char because '[]' are metachars
+  $TCMD "$PRG -h" "Usage: prg.sh .-h. -add <int1> <int2>"
+
+  # ---
+  # Test the -add option with return code of 5 and stdout message
+  # Note: '+' is a regex metachar so either have to backslash or use -b option
+  $TCMD -v -r 5 "prg.sh -add 2 3" "add 2 \+ 3 = 5"
+
+  # ---
+  # Same test as above but using -b to backslash the regex
+  # Note: '+' is a regex metachar so either have to backslash or use -b option
+  $TCMD -v -b -r 5 "prg.sh -add 2 3" "add 2 + 3 = 5"
+
+  # ---
+  # Test the -multiply option with return code of 6 and stdout message
+  # Note: '*' is a regex metachar so either have to backslash or use -b option
+  $TCMD -v -r 6 "prg.sh -multiply 2 3" 'multiply 2 \* 3 = 6'
+
+  # $TCMD -v $PRG "something_without_a_return"
   cd $CWD
 ) | tee $OUT_FILE 2>&1
 

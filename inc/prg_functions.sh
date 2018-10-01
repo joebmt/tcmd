@@ -15,13 +15,21 @@ function add()
     # if [ "$DBG" = true ]; then echo "Note: Inside add()"; set -xv; fi
     NUM1=$1
     NUM2=$2
-    return $(($1+$2))
+    RESULT=$(($1+$2))
+
+    echo "add $NUM1 + $NUM2 = $RESULT"
+    return $RESULT
 }
 
 function multiply()
 {
     # if [ "$DBG" = true ]; then echo "Note: Inside multiply()"; set -xv; fi
-    return $(($1*$2))
+    NUM1=$1
+    NUM2=$2
+    RESULT=$(($1*$2))
+
+    echo "multiply $NUM1 * $NUM2 = $RESULT"
+    return $RESULT
 }
 
 function something_without_a_return()
@@ -77,6 +85,7 @@ function something_without_a_return()
 
     function print_results()
     {
+        echo "---"
         echo "Total Pass: $PASS_CNT"
         echo "Total Fail: $FAIL_CNT"
         echo "Total Cnt : $(($PASS_CNT+$FAIL_CNT))"
@@ -98,15 +107,15 @@ function something_without_a_return()
     # ---
     # Start of unit tests
 
-    add 2 3
-    assertEquals "add 2 3: adding two numbers" 5 $?; RET=$?
+    OUT=$(add 2 3); OUT_RET=$?
+    assertEquals "add 2 3: adding two numbers" 5 $OUT_RET; RET=$?
     addcnt $RET
 
-    multiply 2 3
-    assertEquals "multiply 2 3: multiply two numbers" 6 $?; RET=$?
+    OUT=$(multiply 2 3); OUT_RET=$?
+    assertEquals "multiply 2 3: multiply two numbers" 6 $OUT_RET; RET=$?
     addcnt $RET
 
-    verify_something_without_a_return; RET=$?
+    OUT=$(verify_something_without_a_return); RET=$?
     addcnt $RET
 
     print_results

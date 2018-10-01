@@ -116,6 +116,22 @@ def _runcmd(cmd, shell=True):
 
     return (cmd_stdout, cmd_stderr, cmd_return)
 
+def escape_regex(regex):
+    """
+    Escape regex metachars so user does not have to backslash them on command line
+
+    :param regex: The regular expression to backslash metachars in
+
+    :return: Properly backslashed regular expression metachars in regex
+    """
+
+    # src: https://stackoverflow.com/questions/4202538/escape-regex-special-characters-in-a-python-string
+    regex = re.escape(regex)  ## This works better but regex is ugly in -v output
+    # regex = re.sub(r'([\.\\\+\*\?\[\^\]\$\(\)\{\}\!\<\>\|\:\-])', r'\\\1', regex)
+
+    return regex
+
+
 def get_help_msg(command):
     """
     Print full help message of click def <function>
@@ -141,11 +157,12 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--verbose',     '-v', is_flag=True, default=False, help='Turn verbose output on', metavar='<text>')
 @click.option('--pydoc',       '-p', is_flag=True, default=False, help='Generate pydoc')
 @click.option('--time',        '-t', is_flag=True, default=False, help='Report Execution time in seconds')
+@click.option('--backslash',   '-b', is_flag=True, default=False, help='Backslash all regex meta chars')
 @click.help_option('--help',   '-h', help="This usage message")
 @click.argument('cmd')
 @click.argument('regex')
 
-def testcmd(dbg, verbose, pydoc, cmd, regex, error, return_code, negate, stdin, comment, time):
+def testcmd(dbg, verbose, pydoc, cmd, regex, error, return_code, negate, stdin, comment, time, backslash):
     """\b
 tcmd - test a commands output against a regular expression
 
@@ -181,8 +198,37 @@ Notes:
   4. This program requires textwrap and click python modules to be installed
      Run: 'pip install -r inc/requirements.txt' to install these two modules
   5. See tests/test_tcmd.sh for more examples of syntax
+\b
+Warning:
+  1. You have to backslash regular expression meta chars on command line if you want them
+     to be interpreted as literal characters in the regex
+     (tcmd does not escape the metachars for you unless you use the --backslash option)
+     For example, use:
+       tcmd -v 'echo "add x+y"' "add x\+y"
+                                     (^ backslashed the '+' regex metachar)
+         instead of
+       tcmd -v 'echo "add x+y"' "add x+y"
+     Python regex metachars:
+       \       Escape special char or start a sequence.
+       .       Match any char except newline, see re.DOTALL
+       ^       Match start of the string, see re.MULTILINE
+       $       Match end of the string, see re.MULTILINE
+       []      Enclose a set of matchable chars
+       R|S     Match either regex R or regex S.
+       ()      Create capture group, & indicate precedence
+       *       0 or more. Same as {,}
+       +       1 or more. Same as {1,}
+       ?       0 or 1. Same as {,1}
 """
     global DBG
+
+    # ---
+    # Escape the regex metachars so people do not have backslash them on command line
+    if backslash:
+        # src: https://stackoverflow.com/questions/4202538/escape-regex-special-characters-in-a-python-string
+        # regex = re.escape(regex)  ## This works better but regex is ugly in -v output
+        # regex = re.sub(r'([\.\\\+\*\?\[\^\]\$\(\)\{\}\!\<\>\|\:\-])', r'\1', regex)
+        regex = escape_regex(regex)
 
     # ---
     # Generate pydoc if given on command line

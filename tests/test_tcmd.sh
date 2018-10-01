@@ -57,6 +57,12 @@ EXP_DATE=$(date +%Y) # Get current year like 2018 for positive test cases to pas
   # Test stdin handles multiline and comment
   cat /etc/hosts | $TCMD  -sc "multiline test" ":" "localhost"
 
+  # Test backslashing a '+' regex metachar
+  $TCMD  -c "manual backslash test" 'echo "a + b"' "a \+ b"
+
+  # Test backslashing a '+' regex metachar with -b
+  $TCMD  -c "-b backslash test" -b 'echo "a + b"' "a + b"
+
 ) | tee $OUT_FILE 2>&1
 
 # ----
