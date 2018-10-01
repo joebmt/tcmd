@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # ---
 #   tcmd - test a commands output against a regular expression
-#
+# ---
 #   Usage: tcmd [Options] cmd regEx
 #
 #            ====================================================================
@@ -9,7 +9,7 @@
 #            regEx    ........... regular expression to test the expected stdout of
 #                                 the command
 #            ====================================================================
-#
+# ---
 #   Examples:
 #     tcmd date 2018          ... date | grep 2018
 #     tcmd -c "date test" date 2018
@@ -21,7 +21,7 @@
 #                             ... cat /etc/hosts | egrep "#|localhost"
 #     tcmd -h                 ... this help message
 #     tcmd -d -v date 2018    ... turn on debug and verbose output and check date cmd against regex 2018
-#
+# ---
 # Options:
 #   -d, --dbg                 Turn debug output on
 #   -e, --error <text>        Stderr compared to regex
@@ -80,116 +80,7 @@ def create_pydocs():
     pydoc.writedoc(module)
     os.chdir(cwd)
 
-def usage():
-    msg = """
-         ====================================================================
-tcmd: Test a command by executing the command and then comparing the
-         result to an expected regular expression string, an expected return
-         value (default=0), and an expected stderr (default=nothing).
-         ====================================================================
-  Usage: tcmd [Options] cmd regEx
-         ====================================================================
-         cmd      ........ cmd to execute and test stdout, stderr, exit status
-         regEx    ........ regular expression to test the expected stdout of
-                           the command
-         ====================================================================
-Options:
-         -not       ...... cmd passes if expected stdout does NOT match regEx
-         -e regEx   ...... expected regEx of stderr (default=EMPTY=^\$)
-         -r regEx   ...... expected regEx return value of command (default=0)
-         -stdin str  ..... pipe "str" as stdin into cmd (default=no_stdin)
-         -echo str   ..... ignore actual stdout of cmd and use "str" instead
-                           actual stdout.  Note: This is useful for testing a
-                           string against a regular expression.  Use a simple
-                           dummy command to execute like shell true: ":"
-         -ps        ...... print in strict mode for cleaner printing
-         -ps2       ...... only print the cmd and regEx in "Pass: ..." line
-                           this will not print the command line options
-         -desc <string>
-                    ...... print <string> as the command description on Pass
-         -dtc       ...... turns on debug output of perl script
-         -h         ...... this help menu
-         -dhelp     ...... print help message on debugging
-         -pmin      ...... print minimum info on FAIL lines
-         -pmax      ...... print maximum info on PASS lines
-       ======================================================================
-Examples:
-       tcmd -pmin -desc \\"date test\\" date 2002
-                            ................. Print min output on Fail AND only
-                                              print the desc string on Pass.
-                                              Note: Best option for readability.
-       tcmd -desc \\"lanadmin JUMBO test\\" lanadmin -m 0 \\"= 9000\\"
-                            ................. Test lanadmin output for "= 9000"
-                                              Make output -desc string:
-                                              "Pass: lanadmin jumbo test"
-       tcmd -ps date \"Mon\\|2002\" ......... Test date output for Mon or 2002
-       tcmd           -ps date 2002 ...... "Pass: tcmd: -ps date 2002"
-       tcmd               date 2002 ...... "Pass: tcmd: [1] date 2002"
-       tcmd -desc my_date date 2002 ...... "Pass: my_date"
-       tcmd -ps -not      date 2001 ...... "Pass: tcmd: -not date 2001"
-                                       ...... Test for "2001" NOT in date output
-    timeout -s 4 tcmd -ps ping 101.3.210.255 -n 2 " icmp_seq=0.*icmp_seq=0 "
-                                       ...... Test for at least 2 IPs ping back
-       tcmd -ps -not ping 15.61.185.201 -n 2 " 100% packet loss"
-                                       ...... Test ping to machine works
-       tcmd -e \\"illegal option\\" date -junk \\"^\$\\"
-                                       ...... Test stderr for "illegal option"
-                                              when given -junk cmdline option.
-       tcmd -dtc date 2001 ............... Turn on debug output.
-       -------------------------------------
-       tcmd -ps2 "rm -rf /tmp/*multi*" \\'^\$\\|non-existent\\'
-       tcmd -ps2 "cp file1 file2     " \\'^\$\\|non-existent\\'
-       -------------------------------------
-       tcmd -ps -e \\"^\\$\\|No such file\\" cp file1 file2 \\"^\\$\\"
-                            ................. Print strict mode when stdErr has
-                                              nothing or "No such file" msg
-       -------------------------------------
-       tcmd \\"uname -a\\" HP-UX ........... Test uname output for HP-UX string
-       tcmd \\"uname -a\\" \\"^HP.*license\\$\\". Test begin and end for str\"
-       -------------------------------------
-       tcmd -r \\"12\\|0\\" -e \\"sh.*not found\\" mcmd \\"\\"
-                            ................. Execute missing cmd: "mcmd" via sh
-                                              Check shell return value for 127.
-                                              Check stderr for -e msg: not found
-       -------------------------------------
-       tcmd '\(date\\;echo\\;"echo 3"\)' PDT.*3
-                            ................. Test multiple cmds and compare
-                                              stdout over more than one line.
-       -------------------------------------
-       OUT=`date`
-       tcmd -echo \\"\$OUT\\" : \"2002\"
-                            ................ Test OUT string against regEx
-                                             using sh null cmd (:)
-       -------------------------------------
-       OUT=`date`; tcmd -stdin \\"\$OUT\\" cat 2002
-                   ...... Equivalent: date \| cat \| grep 2002
-       -------------------------------------
-       tcmd -h .......................... Print this usage message.
-       tcmd -dhelp ...................... Print help message on debug levels.
-       ======================================================================
-Advanced:
-       h_testnum=5; export h_testnum
-       tcmd "date" "2002" ............ report testnum=5 in tcmd output
-
-       tcmd -ps grep \\\"^ppName=\\\" \"\$1\" ppName=
-       if [ \$? -ne 0 ]; then echo \"Exiting \$PRG\"; exit 1; fi
-
-
-       ======================================================================
- Notes:
-       Regular expressions match across multiple lines of stdout.
-       This means that "^" and "\$" do not match beginning and end of line.
-       They match the beginning of the multiline output and the end.
-       You must provide an argument for RegEx; EMPTY = \"\" or \"^\$\".
-       The /usr/bin/sh shell inteprets tcmd args before tcmd sees them.
-       This means you will have to use quotes to protect tcmd arguments.
-       If tcmd does not work as expected, try using single quotes.
-       You can use export h_debugtc=[0,1,2,3] for printing debug messages.
-       This utility relies on Perl 5.005 in: /harness/bin/perl -v.
-       """
-    print "$msg\n"
-
-
+    
 def pindent(msg, nspaces=6):
     """ Print the msg indented by 6 spaces the msg from the start of the line """
     newmsg = textwrap.fill(msg, width=80, initial_indent=' '*nspaces, subsequent_indent=' '*nspaces)
@@ -340,13 +231,9 @@ Notes:
         cmd_stdout = "".join(cmd_stdout_list)
         cmd_stdout = cmd_stdout.rstrip('\n')
         cmd = "<stdin> " + cmd
-        if DBG: click.echo("DBG: stdin->cmd_stdout: [%s]" % cmd_stdout)
+        if DBG: pindent("DBG: stdin->cmd_stdout: [%s]" % cmd_stdout)
     else:
         cmd_stdout, cmd_stderr, cmd_return = _runcmd(cmd)
-
-    # if DBG: print "DBG: cmd_return: [%s]" % cmd_return
-    # if DBG: print "DBG: cmd_stderr: [%s]" % cmd_stderr
-    # if DBG: print "DBG: cmd_stdout: [%s]" % cmd_stdout
 
     # ---
     # Now check cmd_stdout against the regex and print Pass or Fail
@@ -386,34 +273,20 @@ Notes:
             click.echo("      cmd_stderr: [%s]" % cmd_stderr)
             click.echo("           regex: [%s]" % regex)
             click.echo("      cmd_stdout: [%s]" % cmd_stdout)
-            exit(0)
+        exit(0)
     else:
         if comment:
             click.echo("Fail: cmd [%s] stdout does *NOT* match regEx [%s] # %s" % (cmd, regex, comment))
         else:
             click.echo("Fail: cmd [%s] stdout does *NOT* match regEx [%s]" % (cmd, regex))
+        
         if verbose:
             click.echo("      cmd_return: [%s]" % cmd_return)
             click.echo("      cmd_stderr: [%s]" % cmd_stderr)
             click.echo("           regex: [%s]" % regex)
             click.echo("      cmd_stdout: [%s]" % cmd_stdout)
-            exit(1)
-
-    if pydoc:
-        create_pydocs()
+        exit(1)
 
 if __name__ == '__main__':
     testcmd()
-    exit()
-    # ---
-    # Extra Commands
-    # ---
-    # # @click.option('--count', default=1, help='')
-    # # @click.argument('qa_name')
-    # ## @click.help_option('--help', '-h')
-    # # @click.help_option('--help', '-h', help="Show this usage message and exit" + example_text)
-    # ##@click.command(context_settings=CONTEXT_SETTINGS, options_metavar='[options]')
-    # # @click.command()
-    # # @click.help_option('--help', '-h', is_eager=False, help="Show this usage message and exit" + example_text, expose_value=True)
-    # # @click.option('--examples', '-n', help=example_text, metavar='[examples]')
-    # # @click.help_option('-h', '--help')
+   
