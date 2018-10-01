@@ -19,23 +19,25 @@ pip install -r inc/requirements.txt
 Install the framework by running git clone or downloading the zip file.
 
 ```
-git clone xxx
-or
-unzip xxx.zip
+git clone https://github.com/joebmt/tcmd.git
 ```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
 
 ## Running the tests
 
-Explain how to run the automated tests for this system
+Run the functional tests for tcmd and the prg.sh template:
 
+```
+cd tests
+test_tcmd.sh
+test_prg.sh
+```
+
+To run the unit tests in prg.sh template:
+
+```
+cd inc
+prg_functions.sh
+```
 ### Break down into end to end tests
 
 There are two example tests to use as templates for tcmd:
