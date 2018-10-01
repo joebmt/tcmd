@@ -1,0 +1,419 @@
+#!/usr/bin/env python
+# ---
+#   tcmd - test a commands output against a regular expression
+#
+#   Usage: tcmd [Options] cmd regEx
+#
+#            ====================================================================
+#            cmd      ........... cmd to execute and test stdout, stderr, exit status
+#            regEx    ........... regular expression to test the expected stdout of
+#                                 the command
+#            ====================================================================
+#
+#   Examples:
+#     tcmd date 2018          ... date | grep 2018
+#     tcmd -c "date test" date 2018
+#                             ... date | grep 2018 with a comment added to Pass/Fail lines
+#     date | tcmd -s -c "cmd=date via --stdin" : 2018
+#                             ... same as line above only using stdin and not testing return_code and stderr
+#     tcmd -n date 2016       ... date | grep -v 2018
+#     tcmd -d 'cat /etc/hosts' '#|localhost'
+#                             ... cat /etc/hosts | egrep "#|localhost"
+#     tcmd -h                 ... this help message
+#     tcmd -d -v date 2018    ... turn on debug and verbose output and check date cmd against regex 2018
+#
+# Options:
+#   -d, --dbg                 Turn debug output on
+#   -e, --error <text>        Stderr compared to regex
+#   -n, --negate              negate (opposite) of regex operator like grep -v
+#   -c, --comment <text>      Add a comment to Pass/Fail lines
+#   -s, --stdin               Pipe stdin as cmd subsitute with :
+#   -r, --return_code <text>  The return status compared to regex
+#   -v, --verbose             Turn verbose output on
+#   -p, --pydoc               Generate pydoc
+#   -t, --time                Report execution time in seconds
+#   -h, --help                This usage message
+#
+# Author:
+#   Joe Orzehoski
+#
+# License:
+#   See readme.md file
+# ---
+# Todo:
+#   1. add execution time to run
+#   2. fix stdin error with negate option
+#   3. fix pydoc option: Currently it assumes you have a <module>.py name to work
+#      pydoc workaround: cd bin; cp tcmd tcmd.py; tcmd.py --pydoc : ""; mv pydoc ..; rm -f tcmd.py
+# ---
+
+import click
+import pydoc
+import sys
+import os
+import subprocess
+import re
+import textwrap
+
+# ---
+# Define the DBG flag (can turn on via -d option or export DBG=true
+DBG=0
+
+def create_pydocs():
+    """
+    create_pydocs() - generate pydoc inside a directory pydocs in the current directory
+    :return: None
+    """
+    pydoc_dir = 'pydoc'
+    module = os.path.basename(__file__)[:-3] # Get the current filename and take off the '.py' extension
+    # module = os.path.basename(__file__)  # Get the current filename
+    print os.path.basename(__file__)
+    # exit(1)
+    __import__(module)
+    if not os.path.exists(pydoc_dir):
+        os.mkdir(pydoc_dir)
+
+    # ---
+    # Write out the pydoc of this module to the pydoc/<module>.py file
+    cwd = os.getcwd()
+    os.chdir(pydoc_dir)
+    pydoc.writedoc(module)
+    os.chdir(cwd)
+
+def usage():
+    msg = """
+         ====================================================================
+tcmd: Test a command by executing the command and then comparing the
+         result to an expected regular expression string, an expected return
+         value (default=0), and an expected stderr (default=nothing).
+         ====================================================================
+  Usage: tcmd [Options] cmd regEx
+         ====================================================================
+         cmd      ........ cmd to execute and test stdout, stderr, exit status
+         regEx    ........ regular expression to test the expected stdout of
+                           the command
+         ====================================================================
+Options:
+         -not       ...... cmd passes if expected stdout does NOT match regEx
+         -e regEx   ...... expected regEx of stderr (default=EMPTY=^\$)
+         -r regEx   ...... expected regEx return value of command (default=0)
+         -stdin str  ..... pipe "str" as stdin into cmd (default=no_stdin)
+         -echo str   ..... ignore actual stdout of cmd and use "str" instead
+                           actual stdout.  Note: This is useful for testing a
+                           string against a regular expression.  Use a simple
+                           dummy command to execute like shell true: ":"
+         -ps        ...... print in strict mode for cleaner printing
+         -ps2       ...... only print the cmd and regEx in "Pass: ..." line
+                           this will not print the command line options
+         -desc <string>
+                    ...... print <string> as the command description on Pass
+         -dtc       ...... turns on debug output of perl script
+         -h         ...... this help menu
+         -dhelp     ...... print help message on debugging
+         -pmin      ...... print minimum info on FAIL lines
+         -pmax      ...... print maximum info on PASS lines
+       ======================================================================
+Examples:
+       tcmd -pmin -desc \\"date test\\" date 2002
+                            ................. Print min output on Fail AND only
+                                              print the desc string on Pass.
+                                              Note: Best option for readability.
+       tcmd -desc \\"lanadmin JUMBO test\\" lanadmin -m 0 \\"= 9000\\"
+                            ................. Test lanadmin output for "= 9000"
+                                              Make output -desc string:
+                                              "Pass: lanadmin jumbo test"
+       tcmd -ps date \"Mon\\|2002\" ......... Test date output for Mon or 2002
+       tcmd           -ps date 2002 ...... "Pass: tcmd: -ps date 2002"
+       tcmd               date 2002 ...... "Pass: tcmd: [1] date 2002"
+       tcmd -desc my_date date 2002 ...... "Pass: my_date"
+       tcmd -ps -not      date 2001 ...... "Pass: tcmd: -not date 2001"
+                                       ...... Test for "2001" NOT in date output
+    timeout -s 4 tcmd -ps ping 101.3.210.255 -n 2 " icmp_seq=0.*icmp_seq=0 "
+                                       ...... Test for at least 2 IPs ping back
+       tcmd -ps -not ping 15.61.185.201 -n 2 " 100% packet loss"
+                                       ...... Test ping to machine works
+       tcmd -e \\"illegal option\\" date -junk \\"^\$\\"
+                                       ...... Test stderr for "illegal option"
+                                              when given -junk cmdline option.
+       tcmd -dtc date 2001 ............... Turn on debug output.
+       -------------------------------------
+       tcmd -ps2 "rm -rf /tmp/*multi*" \\'^\$\\|non-existent\\'
+       tcmd -ps2 "cp file1 file2     " \\'^\$\\|non-existent\\'
+       -------------------------------------
+       tcmd -ps -e \\"^\\$\\|No such file\\" cp file1 file2 \\"^\\$\\"
+                            ................. Print strict mode when stdErr has
+                                              nothing or "No such file" msg
+       -------------------------------------
+       tcmd \\"uname -a\\" HP-UX ........... Test uname output for HP-UX string
+       tcmd \\"uname -a\\" \\"^HP.*license\\$\\". Test begin and end for str\"
+       -------------------------------------
+       tcmd -r \\"12\\|0\\" -e \\"sh.*not found\\" mcmd \\"\\"
+                            ................. Execute missing cmd: "mcmd" via sh
+                                              Check shell return value for 127.
+                                              Check stderr for -e msg: not found
+       -------------------------------------
+       tcmd '\(date\\;echo\\;"echo 3"\)' PDT.*3
+                            ................. Test multiple cmds and compare
+                                              stdout over more than one line.
+       -------------------------------------
+       OUT=`date`
+       tcmd -echo \\"\$OUT\\" : \"2002\"
+                            ................ Test OUT string against regEx
+                                             using sh null cmd (:)
+       -------------------------------------
+       OUT=`date`; tcmd -stdin \\"\$OUT\\" cat 2002
+                   ...... Equivalent: date \| cat \| grep 2002
+       -------------------------------------
+       tcmd -h .......................... Print this usage message.
+       tcmd -dhelp ...................... Print help message on debug levels.
+       ======================================================================
+Advanced:
+       h_testnum=5; export h_testnum
+       tcmd "date" "2002" ............ report testnum=5 in tcmd output
+
+       tcmd -ps grep \\\"^ppName=\\\" \"\$1\" ppName=
+       if [ \$? -ne 0 ]; then echo \"Exiting \$PRG\"; exit 1; fi
+
+
+       ======================================================================
+ Notes:
+       Regular expressions match across multiple lines of stdout.
+       This means that "^" and "\$" do not match beginning and end of line.
+       They match the beginning of the multiline output and the end.
+       You must provide an argument for RegEx; EMPTY = \"\" or \"^\$\".
+       The /usr/bin/sh shell inteprets tcmd args before tcmd sees them.
+       This means you will have to use quotes to protect tcmd arguments.
+       If tcmd does not work as expected, try using single quotes.
+       You can use export h_debugtc=[0,1,2,3] for printing debug messages.
+       This utility relies on Perl 5.005 in: /harness/bin/perl -v.
+       """
+    print "$msg\n"
+
+
+def pindent(msg, nspaces=6):
+    """ Print the msg indented by 6 spaces the msg from the start of the line """
+    newmsg = textwrap.fill(msg, width=80, initial_indent=' '*nspaces, subsequent_indent=' '*nspaces)
+    click.echo(newmsg)
+
+
+def _runcmd(cmd, shell=True):
+    """
+    Executes a shell command in a subprocess and captures stdout, stederr, and return status
+
+    Src: https://stackoverflow.com/questions/7353054/running-a-command-line-containing-pipes-and-displaying-result-to-stdout
+
+    :param cmd:   shell command to run
+    :param shell: subprocess.Popen(..., shell=True) to run commands with pipes
+    :return:      tuple = (cmd_stdout, cmd_stderr, cmd_return)
+    """
+    global DBG
+
+    PIPE=subprocess.PIPE
+    proc = subprocess.Popen(cmd, stdout=PIPE, stderr=PIPE, shell=shell)
+    cmd_stdout, cmd_stderr = proc.communicate()
+    cmd_return = proc.returncode
+
+    # Strip off the extra newline from the output
+    cmd_stdout = cmd_stdout.rstrip('\n')
+    cmd_stderr = cmd_stderr.rstrip('\n')
+    cmd_return = str(cmd_return).rstrip('\n')
+
+    if DBG: pindent("DBG: cmd_return: [%s]" % cmd_return)
+    if DBG: pindent("DBG: cmd_stderr: [%s]" % cmd_stderr)
+    if DBG: pindent("DBG: cmd_stdout: [%s]" % cmd_stdout)
+    if DBG: pindent("---")
+
+    return (cmd_stdout, cmd_stderr, cmd_return)
+
+def get_help_msg(command):
+    """
+    Print full help message of click def <function>
+
+    Ex: print_help_msg(testcmd)
+
+    :param command: function that has the click command decorator and help option
+    :return: a string containting the @click.command() <function> help message
+    """
+    with click.Context(command) as ctx:
+        # click.echo(command.get_help(ctx))
+        return command.get_help(ctx)
+
+# Define command line options and parameters
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+@click.command(context_settings=CONTEXT_SETTINGS, options_metavar='[options]')
+@click.option('--dbg',         '-d', is_flag=True, default=False, help='Turn debug output on', metavar='<text>')
+@click.option('--error',       '-e', is_flag=False,default='^$',  help='Stderr compared to regex', metavar='<text>')
+@click.option('--negate',      '-n', is_flag=True, default=False, help='Opposite (negate) regex operator like grep -v', metavar='<text>')
+@click.option('--comment',     '-c', is_flag=False,default=None,  help='Add a comment to Pass/Fail lines', metavar='<text>')
+@click.option('--stdin',       '-s', is_flag=True, default=False, help='Pipe stdin as cmd subsitute with :', metavar='<text>')
+@click.option('--return_code', '-r', is_flag=False,default='0',   help='The return status compared to regex', metavar='<text>')
+@click.option('--verbose',     '-v', is_flag=True, default=False, help='Turn verbose output on', metavar='<text>')
+@click.option('--pydoc',       '-p', is_flag=True, default=False, help='Generate pydoc')
+@click.option('--time',        '-t', is_flag=True, default=False, help='Report Execution time in seconds')
+@click.help_option('--help',   '-h', help="This usage message")
+@click.argument('cmd')
+@click.argument('regex')
+
+def testcmd(dbg, verbose, pydoc, cmd, regex, error, return_code, negate, stdin, comment, time):
+    """\b
+tcmd - test a commands output against a regular expression
+
+\b
+ Desc: tcmd [Options] cmd regEx
+         ====================================================================
+         cmd      ........... cmd to execute and test stdout, stderr, exit status
+         regEx    ........... regular expression to test the expected stdout of
+                              the command
+         ====================================================================
+\b
+Examples:
+  tcmd date 2018          ... date | grep -i 2018
+  tcmd -c "date test" date 2018
+                          ... date | grep -i 2018 with a comment added to Pass/Fail lines
+  date | tcmd -s -c "cmd=date via --stdin" : 2018
+                          ... same as line above only using stdin and not testing return_code and stderr
+  tcmd -n date 2016       ... date | grep -v 2016 (negate regEx test=Pass)
+  tcmd -d 'cat /etc/hosts' '#|localhost'
+                          ... cat /etc/hosts | egrep -i "#|localhost"
+  tcmd -h                 ... this help message
+  tcmd -d -v date 2018    ... turn on debug and verbose output and check date cmd against regex 2018
+  tcmd -v "touch myfile; test -f myfile && rm -f myfile"  ""
+                          ... sting multiple commands together with ';' or && or ||
+  OUT=$(cat /etc/hosts)
+  echo "$OUT" | tcmd -s -v -c "bash variable test" : localhost
+                          ... echo "$OUT" | grep -i localhost (uses a bash variable w/--stdin)
+\b
+Notes:
+  1. You can specify regEx as "" or "^$" for the empty string
+  2. regex matches re.MULTILINE by default and not begin and end of string
+  3. This program only tested on python 2.7
+  4. This program requires textwrap and click python modules to be installed
+     Run: 'pip install -r inc/requirements.txt' to install these two modules
+  5. See tests/test_tcmd.sh for more examples of syntax
+"""
+    global DBG
+
+    # ---
+    # Generate pydoc if given on command line
+    if pydoc:
+        create_pydocs()
+        exit(0)
+
+    # ---
+    # Set defaults for options -e and -r
+    stderr_regex      = str(error)
+    return_code_regex = str(return_code)
+
+    # Fails: does not work
+    # if negate:
+    #    pass
+        # Negate the regex for stdout if negate given
+        # syntax: (?! regex) negates regex
+        # regex = "(?!"+regex+")"
+
+    if dbg: DBG=1
+    if DBG: pindent("DBG: len(sys.argv): %s" % len(sys.argv))
+
+    # ---
+    # Make sure we have cmd and regex from cmd line args
+    if len(sys.argv) <= 2: # first arg is always the name of the program, fyi, need at least 3 here
+        click.echo(get_help_msg(testcmd))
+        exit(1)
+
+    if DBG: pindent("DBG:       regex: [%s]" % regex)
+    if DBG: pindent("DBG:         cmd: [%s]" % cmd)
+    if DBG: pindent("---")
+    if DBG:
+        pindent("DBG:     verbose: [%s]" % verbose)
+        pindent("DBG:         dbg: [%s]" % dbg)
+        pindent("DBG:      negate: [%s]" % negate)
+        pindent("DBG:       error: [%s]" % error)
+        pindent("DBG: return_code: [%s]" % return_code)
+        pindent("---")
+
+    # ---
+    # Run the command
+    if stdin:
+        # Overwrite stdout with stdin pipe
+        cmd_stdout, cmd_stderr, cmd_return = _runcmd(cmd)
+        cmd_stdout_list = sys.stdin.readlines()
+        cmd_stdout = "".join(cmd_stdout_list)
+        cmd_stdout = cmd_stdout.rstrip('\n')
+        cmd = "<stdin> " + cmd
+        if DBG: click.echo("DBG: stdin->cmd_stdout: [%s]" % cmd_stdout)
+    else:
+        cmd_stdout, cmd_stderr, cmd_return = _runcmd(cmd)
+
+    # if DBG: print "DBG: cmd_return: [%s]" % cmd_return
+    # if DBG: print "DBG: cmd_stderr: [%s]" % cmd_stderr
+    # if DBG: print "DBG: cmd_stdout: [%s]" % cmd_stdout
+
+    # ---
+    # Now check cmd_stdout against the regex and print Pass or Fail
+    stdout_searchObj      = re.search(            regex, cmd_stdout, re.MULTILINE|re.M|re.I)
+    stderr_searchObj      = re.search(     stderr_regex, cmd_stderr, re.MULTILINE|re.M|re.I)
+    return_code_searchObj = re.search(return_code_regex, cmd_return, re.MULTILINE|re.M|re.I)
+
+    if DBG: pindent("DBG: type(stdout_searchObj):      %s" % type(stdout_searchObj))
+    if DBG: pindent("DBG: type(stderr_searchObj):      %s" % type(stderr_searchObj))
+    if DBG: pindent("DBG: type(return_code_searchObj): %s" % type(return_code_searchObj))
+    if DBG: pindent("DBG:      stdout_searchObj :      %s" % stdout_searchObj.group())
+    if DBG: pindent("DBG:      stderr_searchObj :      %s" % stderr_searchObj.group())
+    if DBG: pindent("DBG:      return_code_searchObj : %s" % return_code_searchObj.group())
+    if DBG: pindent("---")
+
+    # ---
+    # Change the stdout_searchObj to the opposite boolean of the actual for --negate option
+    if negate:
+        stdout_searchObj = not stdout_searchObj
+        regex = "<negate> "+regex
+        if DBG: pindent("DBG: stdout_searchObj: %s" % stdout_searchObj)
+
+    # ---
+    # Indent multiline stdout lines so Pass and Fail are easily visible
+    multiline_stdout = re.search( "\n.*\n", cmd_stdout, re.M|re.I)
+    if multiline_stdout:
+        cmd_stdout = re.sub( '^',' '*6, cmd_stdout , flags=re.MULTILINE )
+        cmd_stdout = cmd_stdout.lstrip()
+
+    if stdout_searchObj and stderr_searchObj and return_code_searchObj:
+        if comment:
+            click.echo("Pass: cmd [%s]; regex [%s] # %s" % (cmd, regex, comment))
+        else:
+            click.echo("Pass: cmd [%s]; regex [%s]" % (cmd, regex))
+        if verbose:
+            click.echo("      cmd_return: [%s]" % cmd_return)
+            click.echo("      cmd_stderr: [%s]" % cmd_stderr)
+            click.echo("           regex: [%s]" % regex)
+            click.echo("      cmd_stdout: [%s]" % cmd_stdout)
+            exit(0)
+    else:
+        if comment:
+            click.echo("Fail: cmd [%s] stdout does *NOT* match regEx [%s] # %s" % (cmd, regex, comment))
+        else:
+            click.echo("Fail: cmd [%s] stdout does *NOT* match regEx [%s]" % (cmd, regex))
+        if verbose:
+            click.echo("      cmd_return: [%s]" % cmd_return)
+            click.echo("      cmd_stderr: [%s]" % cmd_stderr)
+            click.echo("           regex: [%s]" % regex)
+            click.echo("      cmd_stdout: [%s]" % cmd_stdout)
+            exit(1)
+
+    if pydoc:
+        create_pydocs()
+
+if __name__ == '__main__':
+    testcmd()
+    exit()
+    # ---
+    # Extra Commands
+    # ---
+    # # @click.option('--count', default=1, help='')
+    # # @click.argument('qa_name')
+    # ## @click.help_option('--help', '-h')
+    # # @click.help_option('--help', '-h', help="Show this usage message and exit" + example_text)
+    # ##@click.command(context_settings=CONTEXT_SETTINGS, options_metavar='[options]')
+    # # @click.command()
+    # # @click.help_option('--help', '-h', is_eager=False, help="Show this usage message and exit" + example_text, expose_value=True)
+    # # @click.option('--examples', '-n', help=example_text, metavar='[examples]')
+    # # @click.help_option('-h', '--help')

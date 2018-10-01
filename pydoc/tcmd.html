@@ -1,0 +1,96 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module tcmd</title>
+<meta charset="utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>tcmd</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/Users/joe/IdeaProjects/joe_python/bash/bin/tcmd.py">/Users/joe/IdeaProjects/joe_python/bash/bin/tcmd.py</a></font></td></tr></table>
+    <p><tt>#&nbsp;---<br>
+#&nbsp;&nbsp;&nbsp;tcmd&nbsp;-&nbsp;test&nbsp;a&nbsp;commands&nbsp;output&nbsp;against&nbsp;a&nbsp;regular&nbsp;expression<br>
+#<br>
+#&nbsp;&nbsp;&nbsp;Usage:&nbsp;tcmd&nbsp;[Options]&nbsp;cmd&nbsp;regEx<br>
+#<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;====================================================================<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cmd&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...........&nbsp;cmd&nbsp;to&nbsp;execute&nbsp;and&nbsp;test&nbsp;stdout,&nbsp;stderr,&nbsp;exit&nbsp;status<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;regEx&nbsp;&nbsp;&nbsp;&nbsp;...........&nbsp;regular&nbsp;expression&nbsp;to&nbsp;test&nbsp;the&nbsp;expected&nbsp;stdout&nbsp;of<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;command<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;====================================================================<br>
+#<br>
+#&nbsp;&nbsp;&nbsp;Examples:<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcmd&nbsp;date&nbsp;2018&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...&nbsp;date&nbsp;|&nbsp;grep&nbsp;2018<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcmd&nbsp;-c&nbsp;"date&nbsp;test"&nbsp;date&nbsp;2018<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...&nbsp;date&nbsp;|&nbsp;grep&nbsp;2018&nbsp;with&nbsp;a&nbsp;comment&nbsp;added&nbsp;to&nbsp;Pass/Fail&nbsp;lines<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;date&nbsp;|&nbsp;tcmd&nbsp;-s&nbsp;-c&nbsp;"cmd=date&nbsp;via&nbsp;--stdin"&nbsp;:&nbsp;2018<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...&nbsp;same&nbsp;as&nbsp;line&nbsp;above&nbsp;only&nbsp;using&nbsp;stdin&nbsp;and&nbsp;not&nbsp;testing&nbsp;return_code&nbsp;and&nbsp;stderr<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcmd&nbsp;-n&nbsp;date&nbsp;2016&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...&nbsp;date&nbsp;|&nbsp;grep&nbsp;-v&nbsp;2018<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcmd&nbsp;-d&nbsp;'cat&nbsp;/etc/hosts'&nbsp;'#|localhost'<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...&nbsp;cat&nbsp;/etc/hosts&nbsp;|&nbsp;egrep&nbsp;"#|localhost"<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcmd&nbsp;-h&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...&nbsp;this&nbsp;help&nbsp;message<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcmd&nbsp;-d&nbsp;-v&nbsp;date&nbsp;2018&nbsp;&nbsp;&nbsp;&nbsp;...&nbsp;turn&nbsp;on&nbsp;debug&nbsp;and&nbsp;verbose&nbsp;output&nbsp;and&nbsp;check&nbsp;date&nbsp;cmd&nbsp;against&nbsp;regex&nbsp;2018<br>
+#<br>
+#&nbsp;Options:<br>
+#&nbsp;&nbsp;&nbsp;-d,&nbsp;--dbg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Turn&nbsp;debug&nbsp;output&nbsp;on<br>
+#&nbsp;&nbsp;&nbsp;-e,&nbsp;--error&nbsp;&lt;text&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stderr&nbsp;compared&nbsp;to&nbsp;regex<br>
+#&nbsp;&nbsp;&nbsp;-n,&nbsp;--negate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;negate&nbsp;(opposite)&nbsp;of&nbsp;regex&nbsp;operator&nbsp;like&nbsp;grep&nbsp;-v<br>
+#&nbsp;&nbsp;&nbsp;-c,&nbsp;--comment&nbsp;&lt;text&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Add&nbsp;a&nbsp;comment&nbsp;to&nbsp;Pass/Fail&nbsp;lines<br>
+#&nbsp;&nbsp;&nbsp;-s,&nbsp;--stdin&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pipe&nbsp;stdin&nbsp;as&nbsp;cmd&nbsp;subsitute&nbsp;with&nbsp;:<br>
+#&nbsp;&nbsp;&nbsp;-r,&nbsp;--return_code&nbsp;&lt;text&gt;&nbsp;&nbsp;The&nbsp;return&nbsp;status&nbsp;compared&nbsp;to&nbsp;regex<br>
+#&nbsp;&nbsp;&nbsp;-v,&nbsp;--verbose&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Turn&nbsp;verbose&nbsp;output&nbsp;on<br>
+#&nbsp;&nbsp;&nbsp;-p,&nbsp;--pydoc&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Generate&nbsp;pydoc<br>
+#&nbsp;&nbsp;&nbsp;-t,&nbsp;--time&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Report&nbsp;execution&nbsp;time&nbsp;in&nbsp;seconds<br>
+#&nbsp;&nbsp;&nbsp;-h,&nbsp;--help&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;This&nbsp;usage&nbsp;message<br>
+#<br>
+#&nbsp;Author:<br>
+#&nbsp;&nbsp;&nbsp;Joe&nbsp;Orzehoski<br>
+#&nbsp;---<br>
+#&nbsp;todo:&nbsp;add&nbsp;execution&nbsp;time&nbsp;to&nbsp;run<br>
+#&nbsp;todo:&nbsp;fix&nbsp;stdin&nbsp;error&nbsp;with&nbsp;negate&nbsp;option<br>
+#&nbsp;todo:&nbsp;fix&nbsp;pydoc&nbsp;option<br>
+#&nbsp;---</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="click.html">click</a><br>
+<a href="os.html">os</a><br>
+</td><td width="25%" valign=top><a href="pydoc.html">pydoc</a><br>
+<a href="re.html">re</a><br>
+</td><td width="25%" valign=top><a href="subprocess.html">subprocess</a><br>
+<a href="sys.html">sys</a><br>
+</td><td width="25%" valign=top><a href="textwrap.html">textwrap</a><br>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-create_pydocs"><strong>create_pydocs</strong></a>()</dt><dd><tt><a href="#-create_pydocs">create_pydocs</a>()&nbsp;-&nbsp;generate&nbsp;pydoc&nbsp;inside&nbsp;a&nbsp;directory&nbsp;pydocs&nbsp;in&nbsp;the&nbsp;current&nbsp;directory<br>
+:return:&nbsp;None</tt></dd></dl>
+ <dl><dt><a name="-get_help_msg"><strong>get_help_msg</strong></a>(command)</dt><dd><tt>Print&nbsp;full&nbsp;help&nbsp;message&nbsp;of&nbsp;click&nbsp;def&nbsp;&lt;function&gt;<br>
+&nbsp;<br>
+Ex:&nbsp;print_help_msg(testcmd)<br>
+&nbsp;<br>
+:param&nbsp;command:&nbsp;function&nbsp;that&nbsp;has&nbsp;the&nbsp;click&nbsp;command&nbsp;decorator&nbsp;and&nbsp;help&nbsp;option<br>
+:return:&nbsp;a&nbsp;string&nbsp;containting&nbsp;the&nbsp;@click.command()&nbsp;&lt;function&gt;&nbsp;help&nbsp;message</tt></dd></dl>
+ <dl><dt><a name="-pindent"><strong>pindent</strong></a>(msg, nspaces<font color="#909090">=6</font>)</dt><dd><tt>Print&nbsp;the&nbsp;msg&nbsp;indented&nbsp;by&nbsp;6&nbsp;spaces&nbsp;the&nbsp;msg&nbsp;from&nbsp;the&nbsp;start&nbsp;of&nbsp;the&nbsp;line</tt></dd></dl>
+ <dl><dt><a name="-usage"><strong>usage</strong></a>()</dt></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>CONTEXT_SETTINGS</strong> = {'help_option_names': ['-h', '--help']}<br>
+<strong>DBG</strong> = 0<br>
+<strong>testcmd</strong> = &lt;click.core.Command object&gt;</td></tr></table>
+</body></html>
