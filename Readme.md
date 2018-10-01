@@ -1,14 +1,19 @@
-# tcmd - Functional Test Program and Framework
+# tcmd - Functional Test Command Program and Framework
 
-Simple Shell unit and functional test framework and examples.
+Simple Shell unit and functional test command framework and examples.
 
-## Overview
+## Description
 
-This project is a simple test framework for building shell scripts and also for functional testing any program on a Linux platform.
-The python 2.7 program *tcmd* runs a command and checks the stdout of the command against a regular expression.
-This allows one to quickly build a functional test suite testing all the options and features of any command line program.
+This project is a simple test framework for building shell scripts and also for functional testing any program on a Linux platform.  The python 2.7 program **tcmd** runs a command and checks the stdout of the command against a regular expression.  This allows one to quickly build a functional test suite testing all the options and features of any command line program.
 
-For example, build a test suite like this:
+The framework also demonstrates how to design and write a unit test a bash/shell script.  See prg.sh and inc/prg_functions.sh. The general procedure is to create functions in an bash include file like prg_functions.sh that can be tested and have return statuses
+and then inside your bash prg.sh: source prg_functions.sh.  Once your program is designed this way you can use a subshell at the bottom of prg.sh to execute your unit tests (on the prg_functions.sh).  
+
+To write and desgin tests for bash scripts, you should include unit AND functional tests.  This sample framework gives you my best practice for this and includes the program tcmd to write functional tests quickly and easily.
+
+See the files in the framework for detailed examples.  The tests/test_tcmd.sh program demonstrates a lot of the different ways to write functional tests quickly.  The program can run any command, not just bash/shell commands.
+
+For example, build a functional test suite like this:
 
 ```
 joe@joemac:[tests] cat test_prg.sh
@@ -79,20 +84,20 @@ Note: rm -rf /tmp/test_prg.sh_92423
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-### Prerequisites
-
-You will need to install the python click and pydoc libraries:
-
-```
-pip install -r inc/requirements.txt
-```
-
 ### Installing
 
 Install the framework by running git clone or downloading the zip file.
 
 ```
 git clone https://github.com/joebmt/tcmd.git
+```
+
+### Python Dependencies Prerequisites
+
+You will need to install the python click and pydoc libraries:
+
+```
+pip install -r inc/requirements.txt
 ```
 
 ## Running the tests
