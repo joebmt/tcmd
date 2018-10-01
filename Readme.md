@@ -20,7 +20,7 @@ See:
 
 The general procedure is to create functions in an bash include file like **prg_functions.sh** that can be tested and have return statuses and then inside your bash **prg.sh: source prg_functions.sh**.  Once your program is designed this way you can use a subshell at the bottom of **prg.sh** to execute your unit tests (on the **prg_functions.sh**).  
 
-To write and desgin tests for bash scripts, you should include unit AND functional tests.  This sample framework gives you my best practice for this and includes the program tcmd to write functional tests quickly and easily.
+To write and desgin tests for bash scripts, you should include **unit AND functional** tests.  This sample framework gives you my best practice for this and includes the program **tcmd** to write functional tests quickly and easily.
 
 See the files in the framework for detailed examples.  The **tests/test_tcmd.sh** program demonstrates a lot of the different ways to write functional tests quickly.  The program can run any command, not just bash/shell commands.
 
@@ -66,7 +66,7 @@ Note: rm -rf /tmp/test_prg.sh_92423
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local machine for development of shell scripts and testing purposes.
 
 ### Installing
 
@@ -253,7 +253,7 @@ The framework and description looks like this:
 ├── inc
 │   ├── prg_functions.sh (include file for prg.sh to run)
 │   ├── requirements.txt ("pip install -r requirements.txt" for tcmd python dependencies to install)
-│   └── test_utils.sh    (include file for tests/test_prg.sh to run some utility functions)
+│   └── test_utils.sh    (include file for tests/test_prg.sh to run some test utility functions)
 ├── prg.sh    (template for a bash script; source inc/prg_functions.sh)
 ├── pydoc
 │   └── tcmd.html (pydoc html file for tcmd python program)
@@ -266,7 +266,7 @@ The framework and description looks like this:
 
 ## tcmd Usage Message
 
-The functional test tool tcmd is pretty powerful and simple to use.  You can specify regular expressions to match against **stdout, stderr, and the command return status**.  It defaults to the empty string for **stderr** and **'0'** for the return status of the command.
+The functional test tool **tcmd** is pretty powerful and simple to use.  You can specify regular expressions to match against **stdout, stderr, and the command return status**.  It defaults to the empty string for **stderr** and **'0'** for the return status of the command.  
 
 ```
 joe@joemac:[bin] tcmd -h
@@ -317,6 +317,20 @@ Options:
   -p, --pydoc               Generate pydoc
   -t, --time                Report Execution time in seconds
   -h, --help                This usage message
+```
+
+## b (backup program) Usage Message
+
+I included a simple backup program I use when I am developing bash/shell scripts.  I simple run "b" in the root directory when I am developing if I am not using my Intellij IDE so that I can back out changes or have a copy in case I accidently remove a file or files.  I know the name "b" is not a best practice but since I type it so frequently I called it "b" instead of backup.sh so I could save typing keystrokes.
+
+Usage:
+
+```
+b - backup files to ../.backup directory w/timestamp name
+Usage: b [-h] [file1 file2 ...]
+   Ex: b ............... backups all files recursively in current directory to ../.backup/<all_sub_dirs>
+   Ex: b a b ........... backup files a and b in ../.backup/a ../.backup/b
+   Ex: b * ............. backup all files only in current directory; no sub directories
 ```
 
 ## Authors
