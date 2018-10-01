@@ -157,7 +157,7 @@ function ...
 function ...
 ...
 # ---
-# Unit Tests: Will only run if called via functions.sh standalone
+# Unit Tests: Will only run if called via prg_functions.sh standalone
 (
     [[ "${BASH_SOURCE[0]}" == "${0}" ]] || exit 0
     echo ---
@@ -235,7 +235,7 @@ function ...
 )
 ```
 
-## Deployment
+## Framework Files
 
 The framework and description looks like this:
 
@@ -249,7 +249,10 @@ The framework and description looks like this:
 │   ├── requirements.txt ("pip install -r requirements.txt" for tcmd python dependencies to install)
 │   └── test_utils.sh    (include file for tests/test_prg.sh to run some utility functions)
 ├── prg.sh    (template for a bash script; source inc/prg_functions.sh)
-├── readme.md (this readme.md file)
+├── pydoc
+│   └── tcmd.html (pydoc html file for tcmd python program)
+├── License.md (Apache 2 License)
+├── Readme.md  (this Readme.md file)
 └── tests
     ├── test_prg.sh      (functional tests for prg.sh using tcmd functional test tool)
     └── test_tcmd.sh     (functional tests for tcmd functional test tool)
