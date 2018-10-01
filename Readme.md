@@ -6,7 +6,13 @@ Simple Shell unit and functional test command framework and examples.
 
 This project is a simple test framework for building shell scripts and also for functional testing any program on a Linux platform.  The python 2.7 program **tcmd** runs a command and checks the stdout of the command against a regular expression.  This allows one to quickly build a functional test suite testing all the options and features of any command line program.
 
-The framework also demonstrates how to design and write a unit test a bash/shell script.  See **prg.sh** and **inc/prg_functions.sh**. The general procedure is to create functions in an bash include file like **prg_functions.sh** that can be tested and have return statuses and then inside your bash **prg.sh: source prg_functions.sh**.  Once your program is designed this way you can use a subshell at the bottom of **prg.sh** to execute your unit tests (on the **prg_functions.sh**).  
+The framework also demonstrates how to design and write a unit test for a bash/shell script.  
+See:
+
+* **prg.sh**  
+* **inc/prg_functions.sh**. 
+
+The general procedure is to create functions in an bash include file like **prg_functions.sh** that can be tested and have return statuses and then inside your bash **prg.sh: source prg_functions.sh**.  Once your program is designed this way you can use a subshell at the bottom of **prg.sh** to execute your unit tests (on the **prg_functions.sh**).  
 
 To write and desgin tests for bash scripts, you should include unit AND functional tests.  This sample framework gives you my best practice for this and includes the program tcmd to write functional tests quickly and easily.
 
