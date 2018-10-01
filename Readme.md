@@ -312,11 +312,11 @@ Options:
 
 ## Authors
 
-* **Joe Orzehoski** - *Initial work* - [Linkedin Profile](www.linkedin.com/in/joeorzehoski)
+* **Joe Orzehoski** - *Initial work* - [Linkedin Profile](http://www.linkedin.com/in/joeorzehoski)
 
 ## License
 
-This project is licensed under the Apache License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the Apache License - see the [License.md](License.md) file for details
 
 ## Acknowledgments
 
