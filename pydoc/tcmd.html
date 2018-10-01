@@ -9,10 +9,10 @@
 <td valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>tcmd</strong></big></big></font></td
 ><td align=right valign=bottom
-><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/Users/joe/IdeaProjects/joe_python/bash/bin/tcmd.py">/Users/joe/IdeaProjects/joe_python/bash/bin/tcmd.py</a></font></td></tr></table>
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/Users/joe/IdeaProjects/joe_python/tcmd/bin/tcmd.py">/Users/joe/IdeaProjects/joe_python/tcmd/bin/tcmd.py</a></font></td></tr></table>
     <p><tt>#&nbsp;---<br>
 #&nbsp;&nbsp;&nbsp;tcmd&nbsp;-&nbsp;test&nbsp;a&nbsp;commands&nbsp;output&nbsp;against&nbsp;a&nbsp;regular&nbsp;expression<br>
-#<br>
+#&nbsp;---<br>
 #&nbsp;&nbsp;&nbsp;Usage:&nbsp;tcmd&nbsp;[Options]&nbsp;cmd&nbsp;regEx<br>
 #<br>
 #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;====================================================================<br>
@@ -20,7 +20,7 @@
 #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;regEx&nbsp;&nbsp;&nbsp;&nbsp;...........&nbsp;regular&nbsp;expression&nbsp;to&nbsp;test&nbsp;the&nbsp;expected&nbsp;stdout&nbsp;of<br>
 #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;command<br>
 #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;====================================================================<br>
-#<br>
+#&nbsp;---<br>
 #&nbsp;&nbsp;&nbsp;Examples:<br>
 #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcmd&nbsp;date&nbsp;2018&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...&nbsp;date&nbsp;|&nbsp;grep&nbsp;2018<br>
 #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcmd&nbsp;-c&nbsp;"date&nbsp;test"&nbsp;date&nbsp;2018<br>
@@ -32,7 +32,7 @@
 #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...&nbsp;cat&nbsp;/etc/hosts&nbsp;|&nbsp;egrep&nbsp;"#|localhost"<br>
 #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcmd&nbsp;-h&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...&nbsp;this&nbsp;help&nbsp;message<br>
 #&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcmd&nbsp;-d&nbsp;-v&nbsp;date&nbsp;2018&nbsp;&nbsp;&nbsp;&nbsp;...&nbsp;turn&nbsp;on&nbsp;debug&nbsp;and&nbsp;verbose&nbsp;output&nbsp;and&nbsp;check&nbsp;date&nbsp;cmd&nbsp;against&nbsp;regex&nbsp;2018<br>
-#<br>
+#&nbsp;---<br>
 #&nbsp;Options:<br>
 #&nbsp;&nbsp;&nbsp;-d,&nbsp;--dbg&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Turn&nbsp;debug&nbsp;output&nbsp;on<br>
 #&nbsp;&nbsp;&nbsp;-e,&nbsp;--error&nbsp;&lt;text&gt;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stderr&nbsp;compared&nbsp;to&nbsp;regex<br>
@@ -47,10 +47,15 @@
 #<br>
 #&nbsp;Author:<br>
 #&nbsp;&nbsp;&nbsp;Joe&nbsp;Orzehoski<br>
+#<br>
+#&nbsp;License:<br>
+#&nbsp;&nbsp;&nbsp;See&nbsp;readme.md&nbsp;file<br>
 #&nbsp;---<br>
-#&nbsp;todo:&nbsp;add&nbsp;execution&nbsp;time&nbsp;to&nbsp;run<br>
-#&nbsp;todo:&nbsp;fix&nbsp;stdin&nbsp;error&nbsp;with&nbsp;negate&nbsp;option<br>
-#&nbsp;todo:&nbsp;fix&nbsp;pydoc&nbsp;option<br>
+#&nbsp;Todo:<br>
+#&nbsp;&nbsp;&nbsp;1.&nbsp;add&nbsp;execution&nbsp;time&nbsp;to&nbsp;run<br>
+#&nbsp;&nbsp;&nbsp;2.&nbsp;fix&nbsp;stdin&nbsp;error&nbsp;with&nbsp;negate&nbsp;option<br>
+#&nbsp;&nbsp;&nbsp;3.&nbsp;fix&nbsp;pydoc&nbsp;option:&nbsp;Currently&nbsp;it&nbsp;assumes&nbsp;you&nbsp;have&nbsp;a&nbsp;&lt;module&gt;.py&nbsp;name&nbsp;to&nbsp;work<br>
+#&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pydoc&nbsp;workaround:&nbsp;cd&nbsp;bin;&nbsp;cp&nbsp;tcmd&nbsp;tcmd.py;&nbsp;tcmd.py&nbsp;--pydoc&nbsp;:&nbsp;"";&nbsp;mv&nbsp;pydoc&nbsp;..;&nbsp;rm&nbsp;-f&nbsp;tcmd.py<br>
 #&nbsp;---</tt></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -75,6 +80,11 @@
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><dl><dt><a name="-create_pydocs"><strong>create_pydocs</strong></a>()</dt><dd><tt><a href="#-create_pydocs">create_pydocs</a>()&nbsp;-&nbsp;generate&nbsp;pydoc&nbsp;inside&nbsp;a&nbsp;directory&nbsp;pydocs&nbsp;in&nbsp;the&nbsp;current&nbsp;directory<br>
 :return:&nbsp;None</tt></dd></dl>
+ <dl><dt><a name="-escape_regex"><strong>escape_regex</strong></a>(regex)</dt><dd><tt>Escape&nbsp;regex&nbsp;metachars&nbsp;so&nbsp;user&nbsp;does&nbsp;not&nbsp;have&nbsp;to&nbsp;backslash&nbsp;them&nbsp;on&nbsp;command&nbsp;line<br>
+&nbsp;<br>
+:param&nbsp;regex:&nbsp;The&nbsp;regular&nbsp;expression&nbsp;to&nbsp;backslash&nbsp;metachars&nbsp;in<br>
+&nbsp;<br>
+:return:&nbsp;Properly&nbsp;backslashed&nbsp;regular&nbsp;expression&nbsp;metachars&nbsp;in&nbsp;regex</tt></dd></dl>
  <dl><dt><a name="-get_help_msg"><strong>get_help_msg</strong></a>(command)</dt><dd><tt>Print&nbsp;full&nbsp;help&nbsp;message&nbsp;of&nbsp;click&nbsp;def&nbsp;&lt;function&gt;<br>
 &nbsp;<br>
 Ex:&nbsp;print_help_msg(testcmd)<br>
@@ -82,7 +92,6 @@ Ex:&nbsp;print_help_msg(testcmd)<br>
 :param&nbsp;command:&nbsp;function&nbsp;that&nbsp;has&nbsp;the&nbsp;click&nbsp;command&nbsp;decorator&nbsp;and&nbsp;help&nbsp;option<br>
 :return:&nbsp;a&nbsp;string&nbsp;containting&nbsp;the&nbsp;@click.command()&nbsp;&lt;function&gt;&nbsp;help&nbsp;message</tt></dd></dl>
  <dl><dt><a name="-pindent"><strong>pindent</strong></a>(msg, nspaces<font color="#909090">=6</font>)</dt><dd><tt>Print&nbsp;the&nbsp;msg&nbsp;indented&nbsp;by&nbsp;6&nbsp;spaces&nbsp;the&nbsp;msg&nbsp;from&nbsp;the&nbsp;start&nbsp;of&nbsp;the&nbsp;line</tt></dd></dl>
- <dl><dt><a name="-usage"><strong>usage</strong></a>()</dt></dl>
 </td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#55aa55">
