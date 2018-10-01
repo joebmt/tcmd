@@ -2,6 +2,12 @@
 
 Simple Shell unit and functional test command framework and examples.
 
+## Overview
+
+I wrote this framework because I could not find a good test unit test framework for testing bash scripts. I also needed a way to quickly write functional tests for these bash programs I developed.  I looked at different bash framewoks and found them flawed or overly complex like Bats, roundup, shunit2, and others.  I created a simple example of how to follow good test driven design by wrapping your shell code into functions (**prg_functions.sh**) with the unit tests embedded inside at the bottom to test each function.  Simply source your functions (**prg_functions.sh**) into your bash program (**prg.sh**) and you have a good mechanism for unit tests.  
+
+I also could not find a good test tool for writing functional tests (testing that all the command line options work for example) for the bash scripts.  I created **tcmd** to simply run a command and check the stdout, stderr, and return code against regular expresssions.  This works well for me and I can create a functional tests quickly by just putting some **tcmd**s into a test.sh script and I am done.
+
 ## Description
 
 This project is a simple test framework for building shell scripts and also for functional testing any program on a Linux platform.  The python 2.7 program **tcmd** runs a command and checks the stdout of the command against a regular expression.  This allows one to quickly build a functional test suite testing all the options and features of any command line program.
@@ -323,5 +329,5 @@ This project is licensed under the Apache License - see the [License.md](License
 
 ## Acknowledgments
 
-* stackoverflow
+* Stackoverflow
 
