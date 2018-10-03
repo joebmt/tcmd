@@ -386,4 +386,10 @@ Warning:
 
 
 if __name__ == '__main__':
-    testcmd()
+    try:
+        testcmd()
+    except Exception as e:
+        click.echo("Fail: There was an error during execution of tcmd:")
+        pindent(e)
+        exit(1)
+
