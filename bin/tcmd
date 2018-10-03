@@ -212,7 +212,7 @@ Examples:
 Notes:
 \b
   1. You can specify regEx as "" or "^$" for the empty string
-  2. regex matches re.MULTILINE by default and not begin and end of string
+  2. regex matches re.MULTILINE and re.DOTALL (matches across multilines with ".")
   3. This program only tested on python 2.7
   4. This program requires textwrap and click python modules to be installed
      Run: 'pip install -r inc/requirements.txt' to install these two modules
@@ -313,16 +313,17 @@ Warning:
 
     # ---
     # Now check cmd_stdout against the regex and print Pass or Fail
-    stdout_searchObj      = re.search(            regex, cmd_stdout, re.MULTILINE|re.M|re.I)
-    stderr_searchObj      = re.search(     stderr_regex, cmd_stderr, re.MULTILINE|re.M|re.I)
-    return_code_searchObj = re.search(return_code_regex, cmd_return, re.MULTILINE|re.M|re.I)
+    # Src: https://www.thegeekstuff.com/2014/07/advanced-python-regex/ ## DOTALL allows "." across '\n' boundries
+    stdout_searchObj      = re.search(            regex, cmd_stdout, re.DOTALL|re.MULTILINE|re.IGNORECASE)
+    stderr_searchObj      = re.search(     stderr_regex, cmd_stderr, re.DOTALL|re.MULTILINE|re.IGNORECASE)
+    return_code_searchObj = re.search(return_code_regex, cmd_return, re.DOTALL|re.MULTILINE|re.IGNORECASE)
 
     if DBG: pindent("DBG: type(stdout_searchObj):      %s" % type(stdout_searchObj))
     if DBG: pindent("DBG: type(stderr_searchObj):      %s" % type(stderr_searchObj))
     if DBG: pindent("DBG: type(return_code_searchObj): %s" % type(return_code_searchObj))
-    if DBG and stdout_searchObj: pindent("DBG:      stdout_searchObj :      %s" % stdout_searchObj.group())
-    if DBG and stderr_searchObj: pindent("DBG:           stderr_searchObj : %s" % stderr_searchObj.group())
-    if DBG and return_code_searchObj: pindent("DBG:      return_code_searchObj : %s" % return_code_searchObj.group())
+    if DBG and stdout_searchObj:      pindent("DBG:      stdout_searchObj :      %s" % stdout_searchObj.group())
+    if DBG and stderr_searchObj:      pindent("DBG:      stderr_searchObj : %s" % stderr_searchObj.group())
+    if DBG and return_code_searchObj: pindent("DBG: return_code_searchObj : %s" % return_code_searchObj.group())
     if DBG: pindent("---")
 
     # ---
