@@ -30,12 +30,24 @@ The simple case to write a functional test is like this:
 joe@joemac:[bin] tcmd date 2018
 Pass: cmd [date]; regex [2018]
 
-joe@joemac:[bin] tcmd -v date 2018
+joe@joemac:[tcmd] tcmd -v date 2018
 Pass: cmd [date]; regex [2018]
-      cmd_return: [0]
-      cmd_stderr: []
-           regex: [2018]
-      cmd_stdout: [Mon Oct  1 03:11:40 PDT 2018]
+      actual_return: [0] expected_return: [0]
+      actual_stderr: []  expected_stderr: [^$]
+
+      expected_stdout: [2018]
+        actual_stdout: [Wed Oct  3 08:57:32 PDT 2018]
+      
+joe@joemac:[tcmd] tcmd "ping -c 3 localhost" "0.0% packet loss"
+Pass: cmd [ping -c 3 localhost]; regex [0.0% packet loss]
+
+joe@joemac:[tcmd] tcmd "ping -c 3 localhost1" "0.0% packet loss"
+Fail: cmd [ping -c 3 localhost1] stdout does *NOT* match regEx [0.0% packet loss]
+      actual_return: [68] expected_return: [0]
+      actual_stderr: [ping: cannot resolve localhost1: Unknown host]  expected_stderr: [^$]
+
+      expected_stdout: [0.0% packet loss]
+        actual_stdout: []
 ```
 
 View and run the **tests/test_prg.sh** program to see another example:
