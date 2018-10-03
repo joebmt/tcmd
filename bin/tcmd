@@ -178,21 +178,34 @@ tcmd - test a commands output against a regular expression
          ====================================================================
 \b
 Examples:
-  tcmd date 2018          ... date | grep -i 2018
+  tcmd date 2018          ... same as: date | grep -i 2018
+
   tcmd -c "date test" date 2018
                           ... date | grep -i 2018 with a comment added to Pass/Fail lines
+
   date | tcmd -s -c "cmd=date via --stdin" : 2018
                           ... same as line above only using stdin and not testing return_code and stderr
+
   tcmd -n date 2016       ... date | grep -v 2016 (negate regEx test=Pass)
+
   tcmd -d 'cat /etc/hosts' '#|localhost'
                           ... cat /etc/hosts | egrep -i "#|localhost"
-  tcmd -h                 ... this help message
+
   tcmd -d -v date 2018    ... turn on debug and verbose output and check date cmd against regex 2018
+
   tcmd -v "touch myfile; test -f myfile && rm -f myfile"  ""
                           ... sting multiple commands together with ';' or && or ||
+
   OUT=$(cat /etc/hosts)
-  echo "$OUT" | tcmd -s -v -c "bash variable test" : localhost
+  echo "$OUT" | tcmd --stdin -v -c "bash variable test" : localhost
                           ... echo "$OUT" | grep -i localhost (uses a bash variable w/--stdin)
+
+  OUT=$(tcmd ping -c 2 localhost); RET=$?
+  if [ $RET -eq 0 ] && echo "tcmd returned 0" || echo "tcmd did not return 0"
+                          ... how to run tcmd and capturing just PASS (0) or FAil (1) return code without
+                          ... printing tcmd output to stdout
+
+  tcmd -h                 ... this help message
 \b
 Notes:
   1. You can specify regEx as "" or "^$" for the empty string
@@ -319,12 +332,18 @@ Warning:
     if timer and not min:
         now = datetime.now()
         elapsed_time = now - start_time
-        pindent("Elapsed_time: %s" % elapsed_time)
 
     if comment:
         add_comment = " # "+comment
     else:
         add_comment = ""
+
+    def print_verbose():
+        click.echo("      actual_return: [%s] expected_return: [%s]" % (cmd_return, return_code_regex))
+        click.echo("      actual_stderr: [%s]  expected_stderr: [%s]" % (cmd_stderr, stderr_regex))
+        click.echo("")
+        click.echo("      expected_stdout: [%s]" % regex)
+        click.echo("        actual_stdout: [%s]" % cmd_stdout)
 
     # ---
     # Test passes if all 3 regex matched
@@ -334,10 +353,7 @@ Warning:
 
         if not min:
             if verbose:
-                click.echo("      cmd_return: [%s]" % cmd_return)
-                click.echo("      cmd_stderr: [%s]" % cmd_stderr)
-                click.echo("           regex: [%s]" % regex)
-                click.echo("      cmd_stdout: [%s]" % cmd_stdout)
+                print_verbose()
             if timer:
                 pindent("---")
                 pindent("Elapsed Time: %s" % elapsed_time)
@@ -362,10 +378,7 @@ Warning:
 
         if not min:
             if verbose:
-                click.echo("      cmd_return: [%s]" % cmd_return)
-                click.echo("      cmd_stderr: [%s]" % cmd_stderr)
-                click.echo("           regex: [%s]" % regex)
-                click.echo("      cmd_stdout: [%s]" % cmd_stdout)
+                print_verbose()
             if timer:
                 pindent("---")
                 pindent("Elapsed Time: %s" % elapsed_time)

@@ -40,7 +40,7 @@ EXP_DATE=$(date +%Y) # Get current year like 2018 for positive test cases to pas
   # $TCMD "echo $OUT" "DBG" | wrapline
 
   # Another simple case
-  $TCMD "ping -c 3 192.168.1.10" "3 packets received"
+  $TCMD "ping -c 3 localhost" "3 packets received"
 
   # Test using stdin
   date | $TCMD -s : $EXP_DATE
@@ -62,6 +62,15 @@ EXP_DATE=$(date +%Y) # Get current year like 2018 for positive test cases to pas
 
   # Test backslashing a '+' regex metachar with -b
   $TCMD  -c "-b backslash test" -b 'echo "a + b"' "a + b"
+
+  # Test tcmd not outputing to stdout
+  OUT=$($TCMD  date "this should fail to match date in stdout"); RET=$?
+  # Now run tcmd again just on the return code of the previous tcmd 
+  echo "$RET" | $TCMD -c "tcmd date fail" -s -v : 1
+
+  # How to feed tcmd a VARIABLE for the CMD and print the CMD as a comment
+  CMD="date $EXP_DATE"
+  tcmd -c "tcmd $CMD" $CMD
 
 ) | tee $OUT_FILE 2>&1
 
