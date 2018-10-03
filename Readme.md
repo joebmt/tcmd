@@ -17,8 +17,8 @@ Consider adding a simple ping test to your shell script test.  Writing the compl
 joe@joemac:[tmp] cat ping_test.sh
 #!/bin/bash
 # ---
-# Ping test, the 1 line easy way:
-tcmd "ping -c 3 localhost" "3 packets recieved"
+**# Ping test, the 1 line easy way:
+tcmd "ping -c 3 localhost" "3 packets recieved"**
 
 # ---
 # Ping test, the 27 line hard way:
