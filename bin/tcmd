@@ -151,6 +151,7 @@ def get_help_msg(command):
 # Define command line options and parameters
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.command(context_settings=CONTEXT_SETTINGS, options_metavar='[options]')
+# @click.command()
 @click.option('--dbg',         '-d', is_flag=True, default=False, help='Turn debug output on', metavar='<text>')
 @click.option('--error',       '-e', is_flag=False,default='^$',  help='Stderr compared to regex', metavar='<text>')
 @click.option('--negate',      '-n', is_flag=True, default=False, help='Opposite (negate) regex operator like grep -v', metavar='<text>')
@@ -180,35 +181,36 @@ tcmd - test a commands output against a regular expression
 \b
 Examples:
   tcmd date 2018          ... same as: date | grep -i 2018
-
+\b
   tcmd -c "date test" date 2018
                           ... date | grep -i 2018 with a comment added to Pass/Fail lines
-
+\b
   date | tcmd -s -c "cmd=date via --stdin" : 2018
                           ... same as line above only using stdin and not testing return_code and stderr
-
+\b
   tcmd -n date 2016       ... date | grep -v 2016 (negate regEx test=Pass)
-
+\b
   tcmd -d 'cat /etc/hosts' '#|localhost'
                           ... cat /etc/hosts | egrep -i "#|localhost"
-
+\b
   tcmd -d -v date 2018    ... turn on debug and verbose output and check date cmd against regex 2018
-
+\b
   tcmd -v "touch myfile; test -f myfile && rm -f myfile"  ""
                           ... sting multiple commands together with ';' or && or ||
-
+\b
   OUT=$(cat /etc/hosts)
   echo "$OUT" | tcmd --stdin -v -c "bash variable test" : localhost
                           ... echo "$OUT" | grep -i localhost (uses a bash variable w/--stdin)
-
+\b
   OUT=$(tcmd ping -c 2 localhost); RET=$?
   if [ $RET -eq 0 ] && echo "tcmd returned 0" || echo "tcmd did not return 0"
                           ... how to run tcmd and capturing just PASS (0) or FAil (1) return code without
                           ... printing tcmd output to stdout
-
+\b
   tcmd -h                 ... this help message
 \b
 Notes:
+\b
   1. You can specify regEx as "" or "^$" for the empty string
   2. regex matches re.MULTILINE by default and not begin and end of string
   3. This program only tested on python 2.7
