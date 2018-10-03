@@ -37,9 +37,13 @@ Pass: cmd [date]; regex [2018]
 
       expected_stdout: [2018]
         actual_stdout: [Wed Oct  3 08:57:32 PDT 2018]
-      
-joe@joemac:[tcmd] tcmd "ping -c 3 localhost" "0.0% packet loss"
+        
+# Here is a more complicated example:    
+
+joe@joemac:[tcmd] tcmd "ping -c 3 localhost" "0.0% packet loss"; RET=$?
 Pass: cmd [ping -c 3 localhost]; regex [0.0% packet loss]
+joe@joemac:[tcmd] echo $RET
+0
 
 joe@joemac:[tcmd] tcmd "ping -c 3 localhost1" "0.0% packet loss"
 Fail: cmd [ping -c 3 localhost1] stdout does *NOT* match regEx [0.0% packet loss]
@@ -48,6 +52,8 @@ Fail: cmd [ping -c 3 localhost1] stdout does *NOT* match regEx [0.0% packet loss
 
       expected_stdout: [0.0% packet loss]
         actual_stdout: []
+joe@joemac:[tcmd] echo $?
+1
 ```
 
 View and run the **tests/test_prg.sh** program to see another example:
