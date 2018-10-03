@@ -61,6 +61,7 @@ from datetime import *
 # Define the DBG flag (can turn on via -d option or export DBG=true
 DBG=0
 
+
 def create_pydocs():
     """
     create_pydocs() - generate pydoc inside a directory pydocs in the current directory
@@ -277,6 +278,13 @@ Warning:
         click.echo(get_help_msg(testcmd))
         exit(1)
 
+    # ---
+    # Get the command that is being run for debug and verbose reporting
+    cmd_str = ""
+    if [ 'tcmd' in sys.argv[0] ]:
+        cmd_str += "tcmd "
+    cmd_str += ' '.join(sys.argv[1:])
+
     if DBG: pindent("DBG:       regex: [%s]" % regex)
     if DBG: pindent("DBG:         cmd: [%s]" % cmd)
     if DBG: pindent("---")
@@ -339,6 +347,9 @@ Warning:
         add_comment = ""
 
     def print_verbose():
+        click.echo("")
+        click.echo("                cmd: [%s]" % cmd_str)
+        click.echo("")
         click.echo("      actual_return: [%s] expected_return: [%s]" % (cmd_return, return_code_regex))
         click.echo("      actual_stderr: [%s]  expected_stderr: [%s]" % (cmd_stderr, stderr_regex))
         click.echo("")
