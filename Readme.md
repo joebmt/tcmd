@@ -8,6 +8,57 @@ I wrote this framework because I could not find a good test unit test framework 
 
 I also could not find a good test tool for writing functional tests (testing that all the command line options work for example) for the bash scripts.  I created **tcmd** to simply run a command and check the stdout, stderr, and return code against regular expresssions.  This works well for me and I can create a functional tests quickly by just putting some **tcmd**s into a test.sh script and I am done.
 
+## What Problem Does tcmd Solve?
+
+The program **tcmd** simply saves engineers time writing bash/shell functional and regression tests.
+Consider adding a simple ping test to your shell script test.  Writing the complete functional test in shell is about 27 lines of code from scratch.  With **tcmd**, it is 1 simple 1 line of code:
+
+```
+joe@joemac:[tmp] cat ping_test.sh
+#!/bin/bash
+# ---
+# Ping test, the 1 line easy way:
+tcmd "ping -c 3 localhost" "3 packets recieved"
+
+# ---
+# Ping test, the 27 line hard way:
+indent(){
+    sed 's/^/       /'
+}
+
+# ---
+# Create and verify the expected stdout, stderr, and return code
+ping_expected_stdout_check="3 packets received"
+ping_expected_stderr=""
+ping_expected_return_code=0
+
+CMD_STR="ping -c 3 localhost"
+GREP_STR="3 packets received"
+ping -c 2 localhost >actual_stdout 2>actual_stderr; actual_return_code=$?
+
+if [ grep "$GREP_STR" actual_stdout >/dev/null 2>&1 ]; then
+    echo "Pass: cmd actual_stdout matches expected grep regex: [$GREP_STR]"
+    rm -f actual_stdout actual_stderr
+    exit 0
+else
+    echo "Fail: cmd actual_stdout does *NOT* match expected grep regex: [$GREP_STR]"
+    (
+      echo "            cmd: [$CMD_STR]"
+      echo "  actual_return: [$actual_return_code] expected_return: [$ping_expected_return_code]"
+      echo "  actual_stderr: [$(cat actual_stderr)] expected_stderr: [$ping_expected_stderr]"
+      echo ""
+      echo "expected_stdout: [$GREP_STR]"
+      echo "  actual_stdout: $(cat actual_stdout)"
+    ) | indent
+    rm -f actual_stdout actual_stderr
+    exit 1
+fi
+
+# Count only the real code lines and remove comments and blank lines
+bin/cat ping_test.sh  | grep -v "^#" | grep . | wc -l
+27
+```
+
 ## Description
 
 This project is a simple test framework for building shell scripts and also for functional testing any program on a Linux platform.  The python 2.7 program **tcmd** runs a command and checks the stdout of the command against a regular expression.  This allows one to quickly build a functional test suite testing all the options and features of any command line program.
