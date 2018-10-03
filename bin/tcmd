@@ -160,11 +160,12 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--pydoc',       '-p', is_flag=True, default=False, help='Generate pydoc')
 @click.option('--timer',       '-t', is_flag=True, default=False, help='Report Execution time in seconds')
 @click.option('--backslash',   '-b', is_flag=True, default=False, help='Backslash all regex meta chars')
+@click.option('--min',         '-m', is_flag=True, default=False, help='Print only minimum one line Pass or Fail except if --dbg')
 @click.help_option('--help',   '-h', help="This usage message")
 @click.argument('cmd')
 @click.argument('regex')
 
-def testcmd(dbg, verbose, pydoc, cmd, regex, error, return_code, negate, stdin, comment, timer, backslash):
+def testcmd(dbg, verbose, pydoc, cmd, regex, error, return_code, negate, stdin, comment, timer, backslash, min):
     """\b
 tcmd - test a commands output against a regular expression
 
@@ -229,7 +230,7 @@ Warning:
 
     if timer:
         start_time = datetime.now()
-        if DBG: pindent("DBG: start_time: %s" % start_time)
+        if DBG: pindent("Start_time: %s" % start_time)
 
     # ---
     # Escape the regex metachars so people do not have backslash them on command line
@@ -315,41 +316,61 @@ Warning:
         cmd_stdout = re.sub( '^',' '*6, cmd_stdout , flags=re.MULTILINE )
         cmd_stdout = cmd_stdout.lstrip()
 
-    if timer:
+    if timer and not min:
         now = datetime.now()
         elapsed_time = now - start_time
         pindent("Elapsed_time: %s" % elapsed_time)
 
+    if comment:
+        add_comment = " # "+comment
+    else:
+        add_comment = ""
+
+    # ---
+    # Test passes if all 3 regex matched
     if stdout_searchObj and stderr_searchObj and return_code_searchObj:
-        if comment:
-            click.echo("Pass: cmd [%s]; regex [%s] # %s" % (cmd, regex, comment))
-        else:
-            click.echo("Pass: cmd [%s]; regex [%s]" % (cmd, regex))
-        if verbose:
-            click.echo("      cmd_return: [%s]" % cmd_return)
-            click.echo("      cmd_stderr: [%s]" % cmd_stderr)
-            click.echo("           regex: [%s]" % regex)
-            click.echo("      cmd_stdout: [%s]" % cmd_stdout)
+
+        click.echo("Pass: cmd [%s]; regex [%s]" % (cmd, regex)+add_comment)
+
+        if not min:
+            if verbose:
+                click.echo("      cmd_return: [%s]" % cmd_return)
+                click.echo("      cmd_stderr: [%s]" % cmd_stderr)
+                click.echo("           regex: [%s]" % regex)
+                click.echo("      cmd_stdout: [%s]" % cmd_stdout)
             if timer:
                 pindent("---")
                 pindent("Elapsed Time: %s" % elapsed_time)
         exit(0)
+
     else:
-        if comment:
-            click.echo("Fail: cmd [%s] stdout does *NOT* match regEx [%s] # %s" % (cmd, regex, comment))
+
+        # ---
+        # Set verbose=True so that details of failure are printed for debugging
+        verbose=True
+
+        # ---
+        # Print out the first searchObj that failed starting with stdout vs regex
+        if not stdout_searchObj:
+            click.echo("Fail: cmd [%s] stdout does *NOT* match regEx [%s]" % (cmd, regex)+add_comment)
+        elif not stderr_searchObj:
+            click.echo("Fail: cmd [%s] stderr does *NOT* match regEx [%s]" % (cmd, stderr_regex)+add_comment)
+        elif not return_code_searchObj:
+            click.echo("Fail: cmd [%s] return code does *NOT* match regEx [%s]" % (cmd, return_code_regex)+add_comment)
         else:
-            click.echo("Fail: cmd [%s] stdout does *NOT* match regEx [%s]" % (cmd, regex))
-        
-        if verbose:
-            click.echo("      cmd_return: [%s]" % cmd_return)
-            click.echo("      cmd_stderr: [%s]" % cmd_stderr)
-            click.echo("           regex: [%s]" % regex)
-            click.echo("      cmd_stdout: [%s]" % cmd_stdout)
+            click.echo("Fail: cmd [%s] did *NOT* match for some reason" % (cmd)+add_comment)
+
+        if not min:
+            if verbose:
+                click.echo("      cmd_return: [%s]" % cmd_return)
+                click.echo("      cmd_stderr: [%s]" % cmd_stderr)
+                click.echo("           regex: [%s]" % regex)
+                click.echo("      cmd_stdout: [%s]" % cmd_stdout)
             if timer:
                 pindent("---")
                 pindent("Elapsed Time: %s" % elapsed_time)
         exit(1)
 
+
 if __name__ == '__main__':
     testcmd()
-   
