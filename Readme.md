@@ -11,15 +11,12 @@ I also could not find a good test tool for writing functional tests (testing tha
 ## What Problem Does tcmd Solve?
 
 The program **tcmd** simply saves engineers time writing bash/shell functional and regression tests.
-Consider adding a simple ping test to your shell script test.  Writing the complete functional test in shell is about 27 lines of code from scratch.  With **tcmd**, it is 1 simple 1 line of code:
+Consider adding a simple ping test to your shell script test.  Writing the complete functional test in shell is about 27 lines of code from scratch.  With **tcmd**, it is 1 simple line of code:
+
+    **tcmd "ping -c 3 localhost" "3 packets recieved"**
 
 ```
 joe@joemac:[tmp] cat ping_test.sh
-#!/bin/bash
-# ---
-**# Ping test, the 1 line easy way:
-tcmd "ping -c 3 localhost" "3 packets recieved"**
-
 # ---
 # Ping test, the 27 line hard way:
 indent(){
