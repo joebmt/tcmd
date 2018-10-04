@@ -80,13 +80,16 @@ The simple case to write a functional test is like this:
 joe@joemac:[bin] tcmd date 2018
 Pass: cmd [date]; regex [2018]
 
-joe@joemac:[tcmd] tcmd -v date 2018
+joe@joemac:[~] tcmd -v date 2018
 Pass: cmd [date]; regex [2018]
+
+                cmd: [tcmd -v date 2018]
+
       actual_return: [0] expected_return: [0]
       actual_stderr: []  expected_stderr: [^$]
 
       expected_stdout: [2018]
-        actual_stdout: [Wed Oct  3 08:57:32 PDT 2018]
+        actual_stdout: [Thu Oct  4 11:03:58 PDT 2018]
         
 # Here is a more complicated example:    
 
@@ -97,6 +100,9 @@ joe@joemac:[tcmd] echo $RET
 
 joe@joemac:[tcmd] tcmd "ping -c 3 localhost1" "0.0% packet loss"
 Fail: cmd [ping -c 3 localhost1] stdout does *NOT* match regEx [0.0% packet loss]
+
+      cmd: [tcmd ping -c 3 localhost1 0.0% packet loss]
+      
       actual_return: [68] expected_return: [0]
       actual_stderr: [ping: cannot resolve localhost1: Unknown host]  expected_stderr: [^$]
 
