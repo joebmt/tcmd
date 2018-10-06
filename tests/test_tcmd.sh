@@ -79,7 +79,8 @@ EXP_DATE=$(date +%Y) # Get current year like 2018 for positive test cases to pas
   # Test multiline match non-greedy
   # Src: https://www.thegeekstuff.com/2014/07/advanced-python-regex/ ## DOTALL allows "." across '\n' boundries
   # stdout_searchObj : hello world
-  $TCMD -d -v 'echo "hello world a\nworld b"' ".*?world"
+  # $TCMD -d -v printf "[%s]\n[%s]\n" "hello world a", "hello world b" ".*?world"
+  $TCMD -d -v 'printf "[%s]\n[%s]\n" "hello world a", "hello world b"' ".*?world"
 
 ) | tee $OUT_FILE 2>&1
 
