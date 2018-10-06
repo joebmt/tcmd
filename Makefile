@@ -13,13 +13,13 @@ cat:
 	@cat Makefile
 
 tcmd_binary:
-	@echo "--- Creating tcmd binary from tcmd.py ---"
+	@echo "--- Makefile: Creating tcmd binary from tcmd.py ---"
 	bin/build_tcmd.sh --binary
 
 tcmd_python:
-	@echo "--- Creating tcmd python from tcmd.py ---"
+	@echo "--- Makefile: Creating tcmd python from tcmd.py ---"
 	bin/build_tcmd.sh --python
 
 install:
-	@echo "--- Installing python dependencies: pip install -r inc/requirements.txt ---"
+	@echo "--- Makefile: Installing python dependencies: pip install -r inc/requirements.txt ---"
 	pip install -r inc/requirements.txt
