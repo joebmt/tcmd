@@ -12,15 +12,17 @@
   # Make the backup directory up one and down in case someone does rm -rf .
   PWD=`pwd`
  RDIR=`basename "$PWD"`
- BDIR="../.backup/$RDIR"
   PRG=`basename $0`
   day=`date +%d`;
-month=`date +%b`;
+month_name=`date +%b`;
+month_num=`date +%m`;
  year=`date +%Y`;
  hour=`date +%H`;
   min=`date +%M`;
   sec=`date +%S`;
- DATE="${day}-${month}-${year}_${hour}:${min}:${sec}"; # Date string
+ # DATE="${day}-${month}-${year}_${hour}:${min}:${sec}"; # Date string
+ DATE="${year}-${month_num}-${month_name}_${day}_${hour}:${min}:${sec}"; # Date string
+ BDIR="../.backup/${RDIR}/${DATE}"
 
 # --------------------------------------------------------------------------
 # Set usage message
@@ -49,7 +51,7 @@ if [ `echo $FILES | grep -c "." 2>/dev/null` -eq 0 ] ; then
  	# -------------------------------
  	# FILES is empty so take current directory
 	# FILES=`find . -type f -maxdepth 1`
-	FILES=`find . -type f -maxdepth 20`
+	FILES=`find . -type f -maxdepth 20 | grep -v ".git" | grep -v ".svn" | grep -v ".backup" `
 fi
 
 # --------------------------------------------------------------------------
@@ -63,12 +65,12 @@ if [ ! -d "$BDIR" ]; then mkdir -p "$BDIR"; fi
 for file in `echo $FILES`
 do
   if [ -f $file ]; then
-    echo "Run: cp -R $file $BDIR/${file}_${DATE}"
+    echo "Run: cp -R $file $BDIR/${file}"
     # set -xv
     DIR=$(dirname $BDIR/$file)
     mkdir -p $DIR
-    # cp -R $file "$BDIR/${file}_${DATE}"
-    cp $file "$BDIR/${file}_${DATE}"
+    # cp -R $file "$BDIR/${file}"
+    cp $file "$BDIR/${file}"
     # set +xv
   fi
 done

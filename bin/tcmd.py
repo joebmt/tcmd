@@ -54,6 +54,7 @@
 import click
 import pydoc
 import sys
+from sys import exit
 import os
 import subprocess
 import re
@@ -341,9 +342,9 @@ Warning:
     if DBG: pindent("DBG: type(stdout_searchObj):      %s" % type(stdout_searchObj))
     if DBG: pindent("DBG: type(stderr_searchObj):      %s" % type(stderr_searchObj))
     if DBG: pindent("DBG: type(return_code_searchObj): %s" % type(return_code_searchObj))
-    if DBG and stdout_searchObj:      pindent("DBG:      stdout_searchObj : [%s]" % stdout_searchObj.group())
-    if DBG and stderr_searchObj:      pindent("DBG:      stderr_searchObj : [%s]" % stderr_searchObj.group())
-    if DBG and return_code_searchObj: pindent("DBG: return_code_searchObj : [%s]" % return_code_searchObj.group())
+    if DBG and stdout_searchObj:      pindent("DBG:      stdout_searchObj : [%s]" % stdout_searchObj.group().split('\n'))
+    if DBG and stderr_searchObj:      pindent("DBG:      stderr_searchObj : [%s]" % stderr_searchObj.group().split('\n'))
+    if DBG and return_code_searchObj: pindent("DBG: return_code_searchObj : [%s]" % return_code_searchObj.group().split('\n'))
     if DBG: pindent("---")
 
     # ---
