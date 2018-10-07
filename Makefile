@@ -23,3 +23,8 @@ tcmd_python:
 install:
 	@echo "--- Makefile: Installing python dependencies: pip install -r inc/requirements.txt ---"
 	pip install -r inc/requirements.txt
+
+pydoc:
+	@echo "--- Makefile: Making new pydoc file ---"
+	cd bin
+	tcmd.py --pydoc date .

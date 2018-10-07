@@ -41,23 +41,30 @@
 #   See readme.md file
 # ---
 # Todo:
-#   0. bin/tcmd.py -d -v -r 127 dat "^\$"
-#   1. fix error: bin/tcmd.py -v -r 127 dat "^?"
-#   2. fix false positive for stderr: bin/tcmd.py -v`
-#   3. fix stderr not indent printing
+#   1. fix false positive for stderr: bin/tcmd.py -v`
+#   2. fix stderr not indent printing
+#   3. stderr not printing with tcmd -v -d '(>&2 echo "error")' ""
+#   3.1 pindent via click.echo() is stripping out newlines somehow:
+#       tcmd -v -d '(>&2 printf "error\n another line")' ""
+#       actual_stderr: [error  another line]  expected_stderr: [^$]
+#   3.2 add a return of 1 or 0 inside tests/t*.sh
 #   4. fix --binary should fail because stderr is not "^?"
 #   5. fix stdin error with negate option
 #   6. fix pydoc option: Currently it assumes you have a <module>.py name to work
 #      pydoc workaround: cd bin; cp tcmd tcmd.py; tcmd.py --pydoc : ""; mv pydoc ..; rm -f tcmd.py
 # ---
 
+import traceback
 import click
 import pydoc
 import sys
 from sys import exit
 import os
 import subprocess
-import re
+# Do not use re because of known issues.  Have to pip install regex.
+# See: https://stackoverflow.com/questions/7063420/perl-compatible-regular-expression-pcre-in-python
+# import re
+import regex as re
 import textwrap
 from time import time as timetime
 from datetime import *
@@ -89,23 +96,15 @@ def create_pydocs():
     os.chdir(cwd)
 
     
-def pindent(msg, nspaces=6):
+def pindent(msg, nspaces=6, line_width=120):
     """ Print the msg indented by 6 spaces the msg from the start of the line """
     # print "----"
     # print type(msg)
     # print "msg: %s" % msg
     # print "----"
     msg = str(msg)
-    newmsg = textwrap.fill(msg, width=80, initial_indent=' '*nspaces, subsequent_indent=' '*nspaces)
+    newmsg = textwrap.fill(msg, width=line_width, initial_indent=' '*nspaces, subsequent_indent=' '*nspaces)
     click.echo(newmsg)
-
-# class CatchAllExceptions(click.Command):
-#
-#     def __call__(self, *args, **kwargs):
-#         try:
-#             return self.main(*args, **kwargs)
-#         except Exception as exc:
-#             click.echo('We found %s' % exc)
 
 
 def _runcmd(cmd, shell=True):
@@ -125,7 +124,17 @@ def _runcmd(cmd, shell=True):
     cmd_stdout, cmd_stderr = proc.communicate()
     cmd_return = proc.returncode
 
-    # Strip off the extra newline from the output
+
+    # ---
+    # Note: Better to leave newlines in the stdout for debugging purposes
+    # ---
+    # Strip off the extra newline from the output if there is only one line of output
+    # newlines_cnt = cmd_stdout.count('\n')
+    # if newlines_cnt == 1:
+    #     if DBG: pindent("DBG: Got only 1 line in stdout, removing newline for printing.")
+    #     # todo: fix this problem: tcmd date "" is pass or fail depending on line below
+    #     #       tcmd date "^$" because ^$ matches a newline for some reason
+    #     # cmd_stdout = cmd_stdout.rstrip()
     # cmd_stdout = cmd_stdout.rstrip('\n')
     # cmd_stderr = cmd_stderr.rstrip('\n')
     # cmd_return = str(cmd_return).rstrip('\n')
@@ -333,18 +342,80 @@ Warning:
         cmd_stdout, cmd_stderr, cmd_return = _runcmd(cmd)
 
     # ---
+    # Must set regex to empty string explicitely because tcmd date "" prints "Pass:"
+    # if not regex or regex == '^$':
+    # # if not regex:
+    #     # src: https://stackoverflow.com/questions/19127384/what-is-a-regex-to-match-only-an-empty-string
+    #     # regex = r'^$' # matches empty string AND newline
+    #     regex = '\A\z'
+    #     regex = '^$'
+        # regex = '^$'; # this is matching a newline somehow (removing the newline makes it pass)
+    def isBlank (myString):
+        """
+        Check if myString is an empty string without using regular expressions
+        Src: https://stackoverflow.com/questions/9573244/most-elegant-way-to-check-if-the-string-is-empty-in-python
+
+        :param myString: cmd_stdout string to check if empty
+        :return: True or False
+        """
+        if myString and myString.strip():
+            # myString is not None AND myString is not empty or blank
+            return False
+        # myString is None OR myString is empty or blank
+        return True
+    # ---
     # Now check cmd_stdout against the regex and print Pass or Fail
     # Src: https://www.thegeekstuff.com/2014/07/advanced-python-regex/ ## DOTALL allows "." across '\n' boundries
-    stdout_searchObj      = re.search(            regex, cmd_stdout, re.DOTALL|re.MULTILINE|re.IGNORECASE)
-    stderr_searchObj      = re.search(     stderr_regex, cmd_stderr, re.DOTALL|re.MULTILINE|re.IGNORECASE)
+    ##stdout_searchObj      = re.search(            regex, cmd_stdout, re.DOTALL|re.MULTILINE|re.IGNORECASE)
+    # ---
+    # Note: Have to special case empty strings because of python re matching ^$ problem
+    # Note: regex is false when: tcmd date ""
+    # Note: To get around using a regex I use
+    # stdout_searchObj = False
+    if not regex or regex == '^$' or regex == '\A\z': # Expecting an empty cmd_stdout
+        if isBlank(cmd_stdout):
+            stdout_searchObj = True
+        else:
+            stdout_searchObj = False
+    else:
+        stdout_searchObj  = re.search(regex, cmd_stdout, re.DOTALL|re.MULTILINE|re.IGNORECASE)
+
+    # ---
+    # Have to do the same thing for stderr_regex for tcmd -n -d -v -r 127 -e "" dat "" to Pass
+    if not stderr_regex or stderr_regex == '^$' or stderr_regex == '\A\z': # Expecting an empty cmd_stdout
+        if isBlank(cmd_stderr):
+            stderr_searchObj = True
+        else:
+            stderr_searchObj = False
+    else:
+        stderr_searchObj  = re.search(stderr_regex,      cmd_stderr, re.DOTALL|re.MULTILINE|re.IGNORECASE)
     return_code_searchObj = re.search(return_code_regex, cmd_return, re.DOTALL|re.MULTILINE|re.IGNORECASE)
 
+    # ---
+    # Print the types of the search (boolean or regex.search)
     if DBG: pindent("DBG: type(stdout_searchObj):      %s" % type(stdout_searchObj))
     if DBG: pindent("DBG: type(stderr_searchObj):      %s" % type(stderr_searchObj))
     if DBG: pindent("DBG: type(return_code_searchObj): %s" % type(return_code_searchObj))
-    if DBG and stdout_searchObj:      pindent("DBG:      stdout_searchObj : [%s]" % stdout_searchObj.group().split('\n'))
-    if DBG and stderr_searchObj:      pindent("DBG:      stderr_searchObj : [%s]" % stderr_searchObj.group().split('\n'))
-    if DBG and return_code_searchObj: pindent("DBG: return_code_searchObj : [%s]" % return_code_searchObj.group().split('\n'))
+
+    # ---
+    # Print out stdout regex test search result
+    if DBG and not isinstance(stdout_searchObj, bool) and stdout_searchObj:
+        pindent("DBG:      stdout_searchObj : [%s]" % stdout_searchObj.group())
+    elif DBG and isinstance(stdout_searchObj, bool):
+        pindent("DBG:      stdout_searchObj : [%s] (boolean)" % stdout_searchObj)
+
+    # ---
+    # Print out stderr regex test search result
+    if DBG and not isinstance(stderr_searchObj, bool) and stderr_searchObj:
+        pindent("DBG:      stderr_searchObj : [%s]" % stderr_searchObj.group())
+    elif DBG and isinstance(stderr_searchObj, bool):
+        pindent("DBG:      stderr_searchObj : [%s] (boolean)" % stderr_searchObj)
+
+    # if DBG and stderr_searchObj:      pindent("DBG:      stderr_searchObj : [%s]" % stderr_searchObj.group())
+
+    # ---
+    # Print out return_code result
+    if DBG and return_code_searchObj: pindent("DBG: return_code_searchObj : [%s]" % return_code_searchObj.group())
     if DBG: pindent("---")
 
     # ---
@@ -370,15 +441,21 @@ Warning:
     else:
         add_comment = ""
 
+    if DBG:
+        print "---"
+        print "cmd_stderr:"
+        print cmd_stderr
+        print "---"
+
     def print_verbose():
-        click.echo("")
-        click.echo("                cmd: [%s]" % cmd_str)
-        click.echo("")
-        click.echo("      actual_return: [%s] expected_return: [%s]" % (cmd_return, return_code_regex))
-        click.echo("      actual_stderr: [%s]  expected_stderr: [%s]" % (cmd_stderr, stderr_regex))
-        click.echo("")
-        click.echo("      expected_stdout: [%s]" % regex)
-        click.echo("        actual_stdout: [%s]" % cmd_stdout)
+        pindent("")
+        pindent("            cmd: [%s]" % cmd_str)
+        pindent("")
+        pindent("  actual_return: [%s] expected_return: [%s]" % (cmd_return, return_code_regex))
+        pindent("  actual_stderr: [%s]  expected_stderr: [%s]" % (cmd_stderr, stderr_regex))
+        pindent("")
+        pindent("expected_stdout: [%s]" % regex)
+        pindent("  actual_stdout: [%s]" % cmd_stdout)
 
     # ---
     # Test passes if all 3 regex matched
@@ -423,8 +500,11 @@ Warning:
 if __name__ == '__main__':
     try:
         testcmd()
-    except Exception as e:
+    except Exception, err:
+        # print 'format_exception():'
         click.echo("Fail: There was an error during execution of tcmd:")
-        pindent(str(e))
+        exc_type, exc_value, exc_tb = sys.exc_info()
+        for line in traceback.format_exception(exc_type, exc_value, exc_tb):
+            pindent(line)
         exit(1)
 

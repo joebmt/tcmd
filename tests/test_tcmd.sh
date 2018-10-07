@@ -74,13 +74,42 @@ EXP_DATE=$(date +%Y) # Get current year like 2018 for positive test cases to pas
 
   # Test multiline match greedy
   # stdout_searchObj : hello world a world
-  $TCMD -d -v 'echo "hello world a\nworld b"' ".*world"
+  $TCMD -c "Verify multiline output matches" -d -v 'printf "hello world a\nhello world b\n"' ".*hello"
+
+  # Test stdin handles multiline and comment
+  printf "hello world a\nhello world b\n" | $TCMD  -sc "multiline test " ":" ".*?hello"
 
   # Test multiline match non-greedy
   # Src: https://www.thegeekstuff.com/2014/07/advanced-python-regex/ ## DOTALL allows "." across '\n' boundries
   # stdout_searchObj : hello world
   # $TCMD -d -v printf "[%s]\n[%s]\n" "hello world a", "hello world b" ".*?world"
-  $TCMD -d -v 'printf "[%s]\n[%s]\n" "hello world a", "hello world b"' ".*?world"
+  $TCMD -d -v 'printf "%s\n%s\n" "hello world a", "hello world b\n"' ".*?world"
+
+  # This is for the logic in tcmd to verfiy empty lines 
+  # They should all Pass with the negation (since date has content)
+  # Test that regex ^$ does not match a line that is not empty
+  # This tests for single line empty strings against stdout
+  $TCMD -n -d -v date '^$'
+  $TCMD -n -d -v date ""
+  $TCMD -n -d -v date ''
+  $TCMD -n -d -v date '\A\z'
+
+  # This tests for multiple line empty strings against stdout
+  $TCMD -d -v 'printf "\n\n\n"' "^$"
+  $TCMD -d -v 'printf "\n\n\n"' ""
+  $TCMD -d -v 'printf "\n\n \n"' ''
+  $TCMD -d -v 'printf "\n\t\n\n"' '\A\z'
+
+  # This tests for single line empty strings against stderr
+  # $TCMD -n -d -v -r 127 -e "" dat "^$"
+  # $TCMD -n -d -v -r 127 -e "" dat ""
+  # $TCMD -n -d -v -r 127 -e "" dat ''
+  # $TCMD -n -d -v -r 127 -e "" dat '\A\z'
+
+  # Test multiline stderr works correctly
+  OUT=$($TCMD -v -d '(>&2 printf "error\n another line")' ""); RET=$?
+  echo "$OUT" | $TCMD -c "P1: test multiline stderr empty string" --stdin : "^Fail:.*stderr does .NOT. match regEx"
+  echo "$RET" | $TCMD -c "P2: test multiline stderr empty string" --stdin : "1"
 
 ) | tee $OUT_FILE 2>&1
 
