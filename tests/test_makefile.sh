@@ -29,12 +29,14 @@ print_header "$TPRG"
 (
   # ---
   # Test 
+  $TCMD -v -n -c "Verify make pydoc" "$PRG pydoc2" "^Fail:"
   $TCMD -c "Verify make" "$PRG" "ls.*cat.*tcmd_binary.*tcmd_python.*install"
   $TCMD -c "Verify make ls" "$PRG ls" "ls.*cat.*tcmd_binary.*tcmd_python.*install"
   $TCMD -c "Verify make install" "$PRG install" "pip install -r inc/requirements.txt"
   $TCMD -c "Verify make cat" "$PRG cat" "# Makefile - QA Makefile"
   $TCMD -v -e " INFO:.*INFO" -c "Verify make tcmd_binary" "$PRG tcmd_binary" "^Pass:"
   $TCMD -v -c "Verify make tcmd_python" "$PRG tcmd_python" "^Pass:"
+  $TCMD -v -c "Verify make pydoc" "$PRG pydoc2" "^Pass:"
 
 ) | tee $OUT_FILE 2>&1
 
