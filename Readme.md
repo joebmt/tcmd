@@ -13,7 +13,9 @@ I also could not find a good test tool for writing functional tests (testing tha
 The program **tcmd** simply saves engineers time writing bash/shell functional and regression tests.
 Consider adding a simple ping test to your shell script.  Writing the complete functional test in shell is about 27 lines of code from scratch.  With **tcmd**, it is 1 easy line of code:
 
-**tcmd "ping -c 3 localhost" "3 packets recieved"**
+```
+tcmd "ping -c 3 localhost" "3 packets recieved"
+```
 
 Now the 27 line hard way to write the same exact ping test in shell:
 
@@ -95,7 +97,7 @@ joe@joemac:[tcmd] echo $?
 1
 ```
 
-# Here is a more complicated example matching a regular expression of multiple lines: 
+Here is a more complicated example matching a regular expression of multiple lines: 
 
 ```
 joe@joemac:[tcmd] tcmd -v "ping -c 3 localhost" "PING.*0.0% packet loss"; RET=$?
@@ -144,28 +146,43 @@ Test: test_prg.sh
 Pass: cmd [prg.sh -h]; regex [Usage: prg.sh \[-h\] -add <int1> <int2>]
 Pass: cmd [prg.sh -h]; regex [Usage: prg.sh .-h. -add <int1> <int2>]
 Pass: cmd [prg.sh -add 2 3]; regex [add 2 \+ 3 = 5]
-      cmd_return: [5]
-      cmd_stderr: []
-           regex: [add 2 \+ 3 = 5]
-      cmd_stdout: [add 2 + 3 = 5]
-Pass: cmd [prg.sh -add 2 3]; regex [add\ 2\ \+\ 3\ \=\ 5]
-      cmd_return: [5]
-      cmd_stderr: []
-           regex: [add\ 2\ \+\ 3\ \=\ 5]
-      cmd_stdout: [add 2 + 3 = 5]
+
+                cmd: [tcmd -v -r 5 prg.sh -add 2 3 add 2 \+ 3 = 5]
+
+      actual_return: [5] expect_return: [5]
+      actual_stderr: []  expect_stderr: [^$]
+
+      expect_stdout: [add 2 \+ 3 = 5]
+      actual_stdout: [add 2 + 3 = 5
+      ]
+Pass: cmd [prg.sh -add 2 3]; regex [add\ 2\ \+\ 3\ =\ 5]
+
+                cmd: [tcmd -v -b -r 5 prg.sh -add 2 3 add 2 + 3 = 5]
+
+      actual_return: [5] expect_return: [5]
+      actual_stderr: []  expect_stderr: [^$]
+
+      expect_stdout: [add\ 2\ \+\ 3\ =\ 5]
+      actual_stdout: [add 2 + 3 = 5
+      ]
 Pass: cmd [prg.sh -multiply 2 3]; regex [multiply 2 \* 3 = 6]
-      cmd_return: [6]
-      cmd_stderr: []
-           regex: [multiply 2 \* 3 = 6]
-      cmd_stdout: [multiply 2 * 3 = 6]
+
+                cmd: [tcmd -v -r 6 prg.sh -multiply 2 3 multiply 2 \* 3 = 6]
+
+      actual_return: [6] expect_return: [6]
+      actual_stderr: []  expect_stderr: [^$]
+
+      expect_stdout: [multiply 2 \* 3 = 6]
+      actual_stdout: [multiply 2 * 3 = 6
+      ]
 ---
-Test Summary: test_prg.sh_98976
+Test Summary: test_prg.sh_48162
 ---
 Passes: 5
  Fails: 0
  Total: 5
 ---
-Note: rm -rf /tmp/test_prg.sh_98976
+Note: rm -rf /tmp/test_prg.sh_48162
 ```
 
 ## Getting Started
@@ -188,33 +205,29 @@ You will need to install the python click and pydoc libraries:
 pip install -r inc/requirements.txt
 ```
 
-## Running the tests
+## Tests
 
-Run the functional tests for **tcmd** and the **prg.sh** template:
-
-```
-cd tests
-test_tcmd.sh
-test_prg.sh
-```
-
-To run the unit tests in **prg.sh** template:
-
-```
-cd inc
-prg_functions.sh
-```
+There are **functional** tests in tests/ and there is one **unit** test inside inc/prg_functions.sh.
+The test tool tcmd can be used in either the functional or unit tests.
 
 ### Functional Test Examples
 
-There are two example tests to use as templates for **tcmd** functional tests:
+There are three functional test examples in tests/:
 
 ```
-./tests/test_tcmd.sh
-./tests/test_prg.sh
+cd tests
+test_tcmd.sh     (tcmds testing tcmd.py functionality)
+test_prg.sh      (tcmds testing prg.sh functionality)
+test_makefile.sh (tcmds testing Makefile functionality)
 ```
 
-For example, build a functional test suite like this:
+To build your own functional test you can use test_prg.sh as an example.
+You can use the bash framework utility functions in inc/test_utils.sh like:
+
+* print_header              (prints a test header out)
+* print_test_counts OUTFILE (counts and outputs the passes, failures, and totals of the tests)
+
+The bash functional test script test_prg.sh has a trap and teardown included also.
 
 ```
 joe@joemac:[tests] cat test_prg.sh
@@ -372,13 +385,16 @@ The framework and description looks like this:
 ```
 .
 ├── bin
-│   ├── b     (utility to backup files recursively)
-│   └── tcmd  (functional python test tool to test any command line program)
+│   ├── b              (utility to backup files recursively; useful for saving copy of files quickly)
+│   └── tcmd           (functional python test tool to test any command line program)
+│   ├── build_pydoc.sh (utility to run tcmd --pydoc and to mv and cleanup files)
+│   ├── build_tcmd.sh  (utility to run make tcmd_binary which compiles tcmd.py into a binary tcmd for portability)
 ├── inc
 │   ├── prg_functions.sh (include file for prg.sh to run)
 │   ├── requirements.txt ("pip install -r requirements.txt" for tcmd python dependencies to install)
 │   └── test_utils.sh    (include file for tests/test_prg.sh to run some test utility functions)
 ├── prg.sh    (template for a bash script; source inc/prg_functions.sh)
+├── Makefile  (builds tcmd binary, installs pip requirements, and builds pydoc/tcmd.html file)
 ├── pydoc
 │   └── tcmd.html (pydoc html file for tcmd python program)
 ├── License.md (Apache 2 License)
@@ -386,6 +402,7 @@ The framework and description looks like this:
 └── tests
     ├── test_prg.sh      (functional tests for prg.sh using tcmd functional test tool)
     └── test_tcmd.sh     (functional tests for tcmd functional test tool)
+    └── test_makefile.sh (functional tests for Makefile targets)
 ```
 
 ## tcmd Usage Message
@@ -408,25 +425,39 @@ Usage: tcmd [options] CMD REGEX
            ====================================================================
 
   Examples:
-    tcmd date 2018          ... date | grep -i 2018
+    tcmd date 2018          ... same as: date | grep -i 2018
+
     tcmd -c "date test" date 2018
                             ... date | grep -i 2018 with a comment added to Pass/Fail lines
+
     date | tcmd -s -c "cmd=date via --stdin" : 2018
                             ... same as line above only using stdin and not testing return_code and stderr
+
     tcmd -n date 2016       ... date | grep -v 2016 (negate regEx test=Pass)
+
     tcmd -d 'cat /etc/hosts' '#|localhost'
                             ... cat /etc/hosts | egrep -i "#|localhost"
-    tcmd -h                 ... this help message
+
     tcmd -d -v date 2018    ... turn on debug and verbose output and check date cmd against regex 2018
+
     tcmd -v "touch myfile; test -f myfile && rm -f myfile"  ""
                             ... sting multiple commands together with ';' or && or ||
+
     OUT=$(cat /etc/hosts)
-    echo "$OUT" | tcmd -s -v -c "bash variable test" : localhost
+    echo "$OUT" | tcmd --stdin -v -c "bash variable test" : localhost
                             ... echo "$OUT" | grep -i localhost (uses a bash variable w/--stdin)
 
+    OUT=$(tcmd ping -c 2 localhost); RET=$?
+    if [ $RET -eq 0 ] && echo "tcmd returned 0" || echo "tcmd did not return 0"
+                            ... how to run tcmd and capturing just PASS (0) or FAil (1) return code without
+                            ... printing tcmd output to stdout
+
+    tcmd -h                 ... this help message
+
   Notes:
-    1. You can specify regEx as "" or "^$" for the empty string
-    2. regex matches re.MULTILINE by default and not begin and end of string
+
+    1. You can specify regEx as "", "^$", or "\A\z" for the empty string
+    2. regex matches re.MULTILINE and re.DOTALL (matches across multilines with ".")
     3. This program only tested on python 2.7
     4. This program requires textwrap and click python modules to be installed
        Run: 'pip install -r inc/requirements.txt' to install these two modules
@@ -462,8 +493,10 @@ Options:
   -r, --return_code <text>  The return status compared to regex
   -v, --verbose             Turn verbose output on
   -p, --pydoc               Generate pydoc
-  -t, --time                Report Execution time in seconds
+  -t, --timer               Report Execution time in seconds
   -b, --backslash           Backslash all regex meta chars
+  -m, --min                 Print only minimum one line Pass or Fail except if
+                            --dbg
   -h, --help                This usage message
 ```
 
