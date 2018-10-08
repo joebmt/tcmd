@@ -11,7 +11,7 @@ I also could not find a good test tool for writing functional tests (testing tha
 ## What Problem Does tcmd Solve?
 
 The program **tcmd** simply saves engineers time writing bash/shell functional and regression tests.
-Consider adding a simple ping test to your shell script test.  Writing the complete functional test in shell is about 27 lines of code from scratch.  With **tcmd**, it is 1 easy line of code:
+Consider adding a simple ping test to your shell script.  Writing the complete functional test in shell is about 27 lines of code from scratch.  With **tcmd**, it is 1 easy line of code:
 
 **tcmd "ping -c 3 localhost" "3 packets recieved"**
 
@@ -77,24 +77,46 @@ See the files in the framework for detailed examples.  The **tests/test_tcmd.sh*
 The simple case to write a functional test is like this:
 
 ```
-joe@joemac:[bin] tcmd date 2018
-Pass: cmd [date]; regex [2018]
+joe@joemac:[tcmd] tcmd -c "Verify 2018 is in date stdout" date 2018
+Pass: cmd [date]; regex [2018] # Verify 2018 is in date stdout
 
-joe@joemac:[~] tcmd -v date 2018
-Pass: cmd [date]; regex [2018]
+joe@joemac:[tcmd] tcmd date 2016
+Fail: cmd [date] stdout does *NOT* match regEx [2016]
 
-                cmd: [tcmd -v date 2018]
+                cmd: [tcmd date 2016]
 
-      actual_return: [0] expected_return: [0]
-      actual_stderr: []  expected_stderr: [^$]
+      actual_return: [0] expect_return: [0]
+      actual_stderr: []  expect_stderr: [^$]
 
-      expected_stdout: [2018]
-        actual_stdout: [Thu Oct  4 11:03:58 PDT 2018]
-        
-# Here is a more complicated example:    
+      expect_stdout: [2016]
+      actual_stdout: [Sun Oct  7 21:20:25 PDT 2018
+      ]
+joe@joemac:[tcmd] echo $?
+1
+```
 
-joe@joemac:[tcmd] tcmd "ping -c 3 localhost" "0.0% packet loss"; RET=$?
-Pass: cmd [ping -c 3 localhost]; regex [0.0% packet loss]
+# Here is a more complicated example matching a regular expression of multiple lines: 
+
+```
+joe@joemac:[tcmd] tcmd -v "ping -c 3 localhost" "PING.*0.0% packet loss"; RET=$?
+Pass: cmd [ping -c 3 localhost]; regex [PING.*0.0% packet loss]
+
+                cmd: [tcmd -v ping -c 3 localhost PING.*0.0% packet loss]
+
+      actual_return: [0] expect_return: [0]
+      actual_stderr: []  expect_stderr: [^$]
+
+      expect_stdout: [PING.*0.0% packet loss]
+      actual_stdout:
+          [PING localhost (127.0.0.1): 56 data bytes
+          64 bytes from 127.0.0.1: icmp_seq=0 ttl=64 time=0.030 ms
+          64 bytes from 127.0.0.1: icmp_seq=1 ttl=64 time=0.043 ms
+          64 bytes from 127.0.0.1: icmp_seq=2 ttl=64 time=0.050 ms
+
+          --- localhost ping statistics ---
+          3 packets transmitted, 3 packets received, 0.0% packet loss
+          round-trip min/avg/max/stddev = 0.030/0.041/0.050/0.008 ms
+          ]
 joe@joemac:[tcmd] echo $RET
 0
 
