@@ -409,19 +409,21 @@ The framework and description looks like this:
 .
 ├── bin
 │   ├── b              (utility to backup files recursively; useful for saving copy of files quickly)
-│   └── tcmd           (functional python test tool to test any command line program)
+│   └── tcmd           (symoblic link to tcmd.py(default) or tcmd.bin(binary))
+│   └── tcmd.py        (functional python test tool to test any command line program)
+│   └── tcmd.bin       (a binary file of tcmd.py created via pyinstaller; not included by default in dist; make tcmd_binary (install))
 │   ├── build_pydoc.sh (utility to run tcmd --pydoc and to mv and cleanup files)
 │   ├── build_tcmd.sh  (utility to run make tcmd_binary which compiles tcmd.py into a binary tcmd for portability)
 ├── inc
 │   ├── prg_functions.sh (include file for prg.sh to run)
 │   ├── requirements.txt ("pip install -r requirements.txt" for tcmd python dependencies to install)
 │   └── test_utils.sh    (include file for tests/test_prg.sh to run some test utility functions)
-├── prg.sh    (template for a bash script; source inc/prg_functions.sh)
-├── Makefile  (builds tcmd binary, installs pip requirements, and builds pydoc/tcmd.html file)
+├── prg.sh               (template for a bash script; source inc/prg_functions.sh)
+├── Makefile             (builds tcmd binary, installs pip requirements, and builds pydoc/tcmd.html file)
 ├── pydoc
-│   └── tcmd.html (pydoc html file for tcmd python program)
-├── License.md (Apache 2 License)
-├── Readme.md  (this Readme.md file)
+│   └── tcmd.html        (pydoc html file for tcmd python program)
+├── License.md           (Apache 2 License)
+├── Readme.md            (this Readme.md file)
 └── tests
     ├── test_prg.sh      (functional tests for prg.sh using tcmd functional test tool)
     └── test_tcmd.sh     (functional tests for tcmd functional test tool)
