@@ -202,6 +202,8 @@ git clone https://github.com/joebmt/tcmd.git
 You will need to install the python click and pydoc libraries:
 
 ```
+make install
+# or
 pip install -r inc/requirements.txt
 ```
 
@@ -498,6 +500,27 @@ Options:
   -m, --min                 Print only minimum one line Pass or Fail except if
                             --dbg
   -h, --help                This usage message
+```
+
+## Make a tcmd binary
+
+By default **bin/tcmd*** is symbolic linked to **bin/tcmd.py** via **ln -s bin/tcmd.py bin/tcmd**.
+This means that each system you install this git repository on will have to have inc/requirements.txt python packages installed.
+If you want a self contained binary for tcmd instead of tcmd.py with dependent packages, you can build one.
+Note: The file **bin/tcmd.bin** binary file is not included with the git repository because it needs to be built on the specific platform like ubuntu, mac, centos, etc.
+
+To create a binary executable **tcmd**, run:
+
+```
+# cd to tcmd root dir where Makefile is
+make tcmd_binary (removes bin/tcmd and creates tcmd.bin and then ln -s bin/tcmd.bin bin/tcmd)
+```
+
+If you want to restore the **tcmd** back to **tcmd.py**, run
+
+```
+# cd to tcmd root dir where Makefile is
+make tcmd_python (removes bin/tcmd and then ln -s bin/tcmd.py bin/tcmd)
 ```
 
 ## b (backup program) Usage Message
