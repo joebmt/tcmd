@@ -8,6 +8,9 @@ I wrote this framework because I could not find a good test unit test framework 
 
 I also could not find a good test tool for writing functional tests (testing that all the command line options work for example) for the bash scripts.  I created **tcmd** to simply run a command and check the stdout, stderr, and return code against regular expresssions.  This works well for me and I can create a functional tests quickly by just putting some **tcmd**s into a test.sh script and I am done.
 
+The test tool **tcmd** is powerful because it uses regular expressions to test against instead of having to maintain expected files.
+Regular expressions for stdout and stderr match across multiple lines which allow you to write non-fragile and robust tests to mask out data that changes between tests (like ping time in milliseconds that is different with each call).
+
 ## What Problem Does tcmd Solve?
 
 The program **tcmd** simply saves engineers time writing bash/shell functional and regression tests.
@@ -293,14 +296,32 @@ teardown
 
 ### Unit Test Example
 
-The program **prg_functions.sh** shows how to embed unit tests inside your 
+The general best practice for writing shell scripts is to wrap your bash commands into functions with descriptive names and put these into an include file with and name like **prg_functions.sh**.  Then you write your bash program which simply sources in your **prg_functions.sh** file like this:
+
+```
+vi prg.sh:
+source inc/prg_functions.sh
+function usage(){...}
+function process_cmdline_args(){...}
+
+function1(){...} # From inc/prg_functions.sh
+function2(){...} # From inc/prg_functions.sh
+...
+functionN(){...} # From inc/prg_functions.sh
+exit 0
+```
+
+In this example the unit tests are embedded inside **prg_functions.sh** at the bottom of the file in a subshell "()".
+This means they will only get executed when **prg_functions.sh** is run directly (standalone).
+Here is an pseudo-code for unit tests in a **prg_functions.sh** include file:
 
 ```
 vi inc/prg_functions.sh
 
-function ...
-function ...
+function1(){...}
+function2(){...}
 ...
+functionN(){...}
 # ---
 # Unit Tests: Will only run if called via prg_functions.sh standalone
 (
