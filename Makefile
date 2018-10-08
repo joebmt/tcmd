@@ -24,7 +24,7 @@ install:
 	@echo "--- Makefile: Installing python dependencies: pip install -r inc/requirements.txt ---"
 	pip install -r inc/requirements.txt
 
-pydoc2:
+buildpydoc:
 	@echo "--- Makefile: Making new pydoc file ---"
 	# cd bin
 	bin/build_pydoc.sh
