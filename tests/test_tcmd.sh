@@ -2,19 +2,26 @@
 # ---
 # test_tcmd.sh - shell program which runs tests to verify ../bin/tcmd functions correctly
 # ---
-PRG="tcmd"
-TPRG=$(basename $0)
-trap "TRAP=TRUE; teardown; exit 1" 1 2 3 15
+    PRG="tcmd"
+   TPRG=$(basename $0) # test_tcmd.sh
+    CWD=$(pwd)         # ../tests or ./tests
+ SUB_DIR=$(find . -name test_tcmd.sh -exec dirname {} \;) # usually '.' dir or './tests'
+ cd $SUB_DIR    # Now we are inside test_tcmd.sh dir
+ SRC_DIR=$(pwd) # /../tests absolute path dir containing file test_tcmd.sh
 OUT_FILE=/tmp/${TPRG}_$$
 teardown(){
   if [ -f "$OUT_FILE" ]; then rm -rf "$OUT_FILE"; echo "Note: rm -rf $OUT_FILE"; fi
   exit 
 }
+trap "TRAP=TRUE; teardown; exit 1" 1 2 3 15
 
-     CWD=$(pwd)
-TCMD_DIR=${CWD}/../bin
-    TCMD=${TCMD_DIR}/tcmd
-source ${CWD}/../inc/test_utils.sh
+TCMD_DIR=${SRC_DIR}/../bin
+    TCMD=${TCMD_DIR}/tcmd.py
+
+# cd $SRC_DIR  # Dir which contains test_tcmd.sh
+# ----
+# Source in the utility functions
+source $SRC_DIR/../inc/test_utils.sh
 
 # ----
 # print out a header with the name of the program
