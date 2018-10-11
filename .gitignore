@@ -2,7 +2,6 @@ misc
 .pytest_cache
 bin/tcmd.spec
 bin/tcmd.bin
-bin/tcmd
 bin/dist
 bin/build
 err.txt
