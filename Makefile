@@ -20,9 +20,19 @@ tcmd_python:
 	@echo "--- Makefile: Creating tcmd python from tcmd.py ---"
 	bin/build_tcmd.sh --python
 
-install:
+installreq:
 	@echo "--- Makefile: Installing python dependencies: pip install -r inc/requirements.txt ---"
 	pip install -r inc/requirements.txt
+
+install_tcmdpy:
+	@echo "--- Makefile: Installing tcmd.py to /usr/local/bin ---"
+	cp -f bin/tcmd.py /usr/local/bin/tcmd
+	ls -alt /usr/local/bin/tcmd
+
+install_tcmdbin:
+	@echo "--- Makefile: Installing tcmd.bin to /usr/local/bin ---"
+	cp -f bin/tcmd.bin /usr/local/bin/tcmd
+	ls -alt /usr/local/bin/tcmd
 
 buildpydoc:
 	@echo "--- Makefile: Making new pydoc file ---"
